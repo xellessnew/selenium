@@ -722,6 +722,11 @@ namespace OpenQA.Selenium.Support.Events
             foreach (object arg in args)
             {
                 EventFiringWebElement eventElementArg = arg as EventFiringWebElement;
+                if (eventElementArg == null)
+                {
+                    IWrapsElement argAsWrapsElement = arg as IWrapsElement;
+                    eventElementArg = argAsWrapsElement.WrappedElement as EventFiringWebElement;
+                }
                 if (eventElementArg != null)
                 {
                     unwrappedArgs.Add(eventElementArg.WrappedElement);
