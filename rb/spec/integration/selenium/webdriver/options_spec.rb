@@ -17,37 +17,40 @@
 # specific language governing permissions and limitations
 # under the License.
 
-require File.expand_path("../spec_helper", __FILE__)
+require_relative 'spec_helper'
 
 module Selenium
   module WebDriver
     describe Options do
 
-      describe 'logs' do
-        compliant_on :driver => [:firefox] do
-          it 'can fetch available log types' do
-            driver.manage.logs.available_types.should == [:browser, :driver]
-          end
+      # Not supported in W3C Spec
+      not_compliant_on :driver => :marionette do
+        describe 'logs' do
+          compliant_on :driver => [:firefox] do
+            it 'can fetch available log types' do
+              expect(driver.manage.logs.available_types).to eq([:browser, :driver])
+            end
 
-          it 'can get the browser log' do
-            driver.navigate.to url_for("simpleTest.html")
+            it 'can get the browser log' do
+              driver.navigate.to url_for("simpleTest.html")
 
-            entries = driver.manage.logs.get(:browser)
-            entries.should_not be_empty
-            entries.first.should be_kind_of(LogEntry)
-          end
+              entries = driver.manage.logs.get(:browser)
+              expect(entries).not_to be_empty
+              expect(entries.first).to be_kind_of(LogEntry)
+            end
 
-          it 'can get the driver log' do
-            driver.navigate.to url_for("simpleTest.html")
+            it 'can get the driver log' do
+              driver.navigate.to url_for("simpleTest.html")
 
-            entries = driver.manage.logs.get(:driver)
-            entries.should_not be_empty
-            entries.first.should be_kind_of(LogEntry)
+              entries = driver.manage.logs.get(:driver)
+              expect(entries).not_to be_empty
+              expect(entries.first).to be_kind_of(LogEntry)
+            end
           end
         end
       end
 
-      not_compliant_on :browser => :ie do
+      not_compliant_on({:browser => :ie}) do
         describe "cookie management" do
           it "should get all" do
             driver.navigate.to url_for("xhtmlTest.html")
@@ -56,31 +59,34 @@ module Selenium
             cookies = driver.manage.all_cookies
 
             expect(cookies.size).to eq(1)
-            cookies.first[:name].should == "foo"
-            cookies.first[:value].should == "bar"
+            expect(cookies.first[:name]).to eq("foo")
+            expect(cookies.first[:value]).to eq("bar")
           end
 
+          # Edge BUG - https://connect.microsoft.com/IE/feedbackdetail/view/1864122
           not_compliant_on :browser => :edge do
             it "should delete one" do
               driver.navigate.to url_for("xhtmlTest.html")
-
               driver.manage.add_cookie :name => "foo", :value => "bar"
+
               driver.manage.delete_cookie("foo")
             end
           end
 
-          # Edge does not yet support xpath
+          # This is not a w3c supported spec
           not_compliant_on :browser => :edge do
             it "should delete all" do
               driver.navigate.to url_for("xhtmlTest.html")
 
               driver.manage.add_cookie :name => "foo", :value => "bar"
               driver.manage.delete_all_cookies
-              driver.manage.all_cookies.should be_empty
+              expect(driver.manage.all_cookies).to be_empty
             end
           end
 
-          not_compliant_on :browser => [:ie, :android, :iphone, :safari] do
+          # Marionette BUG - Failed to convert expiry to Date
+          not_compliant_on({:browser => [:ie, :android, :iphone, :safari, :marionette]},
+                           {:driver => :marionette}) do
             it "should use DateTime for expires" do
               driver.navigate.to url_for("xhtmlTest.html")
 
@@ -90,12 +96,11 @@ module Selenium
                                        :expires => expected
 
               actual = driver.manage.cookie_named("foo")[:expires]
-              actual.should be_kind_of(DateTime)
-              actual.should == expected
+              expect(actual).to be_kind_of(DateTime)
+              expect(actual).to eq(expected)
             end
           end
         end
-
       end
     end
   end

@@ -22,10 +22,13 @@ import com.google.common.base.Throwables;
 import org.openqa.selenium.Beta;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.FileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.service.DriverCommandExecutor;
+
+import java.util.List;
 
 /**
  * An implementation of the {#link WebDriver} interface that drives Firefox using Marionette interface.
@@ -61,13 +64,18 @@ public class MarionetteDriver extends RemoteWebDriver {
   public MarionetteDriver(GeckoDriverService service, Capabilities capabilities,
                                 int port) {
     if (capabilities == null) {
-      capabilities = DesiredCapabilities.internetExplorer();
+      capabilities = DesiredCapabilities.firefox();
     }
 
     if (service == null) {
-      service = setupService(capabilities, port);
+      service = setupService(port);
     }
     run(service, capabilities);
+  }
+
+  @Override
+  public int getW3CStandardComplianceLevel() {
+    return 1;
   }
 
   private void run(GeckoDriverService service, Capabilities capabilities) {
@@ -83,7 +91,7 @@ public class MarionetteDriver extends RemoteWebDriver {
       "via RemoteWebDriver");
   }
 
-  private GeckoDriverService setupService(Capabilities caps, int port) {
+  private GeckoDriverService setupService(int port) {
     try {
       GeckoDriverService.Builder builder = new GeckoDriverService.Builder();
       builder.usingPort(port);

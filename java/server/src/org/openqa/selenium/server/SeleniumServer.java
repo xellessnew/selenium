@@ -53,36 +53,33 @@ import java.io.InputStreamReader;
 import java.net.BindException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+
+import javax.servlet.Servlet;
 
 /**
  * Provides a server that can launch/terminate browsers and can receive remote Selenium commands
  * over HTTP and send them on to the browser.
- * <p/>
  * <p>
  * To run Selenium Server, run:
- * <p/>
  * <blockquote>
  * <code>java -jar selenium-server-1.0-SNAPSHOT.jar [-port 4444] [-interactive] [-timeout 1800]</code>
  * </blockquote>
- * <p/>
  * <p>
  * Where <code>-port</code> specifies the port you wish to run the Server on (default is 4444).
- * <p/>
  * <p>
  * Where <code>-timeout</code> specifies the number of seconds that you allow data to wait all in
  * the communications queues before an exception is thrown.
- * <p/>
  * <p>
  * Using the <code>-interactive</code> flag will start the server in Interactive mode. In this mode
- * you can type remote Selenium commands on the command line (e.g. cmd=open&1=http://www.yahoo.com).
+ * you can type remote Selenium commands on the command line (e.g. cmd=open&amp;1=http://www.yahoo.com).
  * You may also interactively specify commands to run on a particular "browser session" (see below)
- * like this: <blockquote><code>cmd=open&1=http://www.yahoo.com&sessionId=1234</code></blockquote>
- * </p>
- * <p/>
+ * like this: <blockquote><code>cmd=open&amp;1=http://www.yahoo.com&amp;sessionId=1234</code></blockquote>
  * <p>
  * The server accepts three types of HTTP requests on its port:
- * <p/>
  * <ol>
  * <li><b>Client-Configured Proxy Requests</b>: By configuring your browser to use the Selenium
  * Server as an HTTP proxy, you can use the Selenium Server as a web proxy. This allows the server
@@ -90,12 +87,12 @@ import java.util.Properties;
  * <li><b>Remote Browser Commands</b>: If the browser goes to
  * "/selenium-server/RemoteRunner.html?sessionId=1234" on any website via the Client-Configured
  * Proxy, it will ask the Selenium Server for work to do, like this: <blockquote>
- * <code>http://www.yahoo.com/selenium-server/driver/?seleniumStart=true&sessionId=1234</code>
+ * <code>http://www.yahoo.com/selenium-server/driver/?seleniumStart=true&amp;sessionId=1234</code>
  * </blockquote> The driver will then reply with a command to run in the body of the HTTP response,
  * e.g. "|open|http://www.yahoo.com||". Once the browser is done with this request, the browser will
  * issue a new request for more work, this time reporting the results of the previous
  * command:<blockquote>
- * <code>http://www.yahoo.com/selenium-server/driver/?commandResult=OK&sessionId=1234</code>
+ * <code>http://www.yahoo.com/selenium-server/driver/?commandResult=OK&amp;sessionId=1234</code>
  * </blockquote> The action list is listed in selenium-api.js. Normal actions like "doClick" will
  * return "OK" if clicking was successful, or some other error string if there was an error.
  * Assertions like assertTextPresent or verifyTextPresent will return "PASSED" if the assertion was
@@ -103,7 +100,7 @@ import java.util.Properties;
  * the result of the get command. "getAllLinks" will return a comma-delimited list of links.</li>
  * <li><b>Driver Commands</b>: Clients may send commands to the Selenium Server over HTTP. Command
  * requests should look like this:<blockquote>
- * <code>http://localhost:4444/selenium-server/driver/?commandRequest=|open|http://www.yahoo.com||&sessionId=1234</code>
+ * <code>http://localhost:4444/selenium-server/driver/?commandRequest=|open|http://www.yahoo.com||&amp;sessionId=1234</code>
  * </blockquote> The Selenium Server will not respond to the HTTP request until the browser has
  * finished performing the requested command; when it does, it will reply with the result of the
  * command (e.g. "OK" or "PASSED") in the body of the HTTP response. (Note that
@@ -123,7 +120,6 @@ import java.util.Properties;
  * "/selenium-server/RemoteRunner.html?sessionId=###" where "###" is the sessionId number. Only
  * commands that are associated with the specified sessionId will be run by this browser.
  * </p>
- * <p/>
  * <p>
  * <i>browserString</i> may be any one of the following:
  * <ul>
@@ -171,24 +167,20 @@ import java.util.Properties;
  * </ul>
  * <p>
  * Example:<blockquote>
- * <code>cmd=getNewBrowserSession&1=*firefox&2=http://www.google.com
- * <br/>Got result: 1140738083345
- * <br/>cmd=open&1=http://www.google.com&sessionId=1140738083345
- * <br/>Got result: OK
- * <br/>cmd=type&1=q&2=hello world&sessionId=1140738083345
- * <br/>Got result: OK
- * <br/>cmd=testComplete&sessionId=1140738083345
- * <br/>Got result: OK
+ * <code>cmd=getNewBrowserSession&amp;1=*firefox&amp;2=http://www.google.com
+ * <br>Got result: 1140738083345
+ * <br>cmd=open&amp;1=http://www.google.com&amp;sessionId=1140738083345
+ * <br>Got result: OK
+ * <br>cmd=type&amp;1=q&amp;2=hello world&amp;sessionId=1140738083345
+ * <br>Got result: OK
+ * <br>cmd=testComplete&amp;sessionId=1140738083345
+ * <br>Got result: OK
  * </code></blockquote>
- * </p>
- * <p/>
- * <h4>The "null" session</h4>
- * <p/>
+ * <h1>The "null" session</h1>
  * <p>
  * If you open a browser manually and do not specify a session ID, it will look for commands using
  * the "null" session. You may then similarly send commands to this browser by not specifying a
  * sessionId when issuing commands.
- * </p>
  *
  * @author plightbo
  */
@@ -205,7 +197,6 @@ public class SeleniumServer implements SslCertificateGenerator {
   private static final NetworkUtils networkUtils = new NetworkUtils();
 
   private ProxyHandler proxyHandler;
-
 
   public static int DEFAULT_JETTY_THREADS = 512;
   // Number of jetty threads for the server
@@ -252,6 +243,22 @@ public class SeleniumServer implements SslCertificateGenerator {
 
   public SeleniumServer() throws Exception {
     this(slowResourceProperty(), new RemoteControlConfiguration());
+  }
+
+  public SeleniumServer(Map<String, Object> configurationAsMap) throws Exception {
+    this(slowResourceProperty(), mapToRemoteControlConfiguration(configurationAsMap));
+  }
+
+  private static RemoteControlConfiguration mapToRemoteControlConfiguration(Map<String, Object> configurationAsMap) {
+    List<String> params = new ArrayList<>();
+    for (String key : configurationAsMap.keySet()) {
+      params.add("-" + key);
+
+      if (!configurationAsMap.get(key).toString().trim().isEmpty()) {
+        params.add("" + configurationAsMap.get(key));
+      }
+    }
+    return RemoteControlLauncher.parseLauncherOptions(params.toArray(new String[params.size()]));
   }
 
   public SeleniumServer(RemoteControlConfiguration configuration) throws Exception {
@@ -574,9 +581,42 @@ public class SeleniumServer implements SslCertificateGenerator {
    *
    * @return the internal Jetty server, pre-configured with the /selenium-server context as well as
    *         the proxy server on /
+   * @deprecated
    */
+  @Deprecated
   public Server getServer() {
     return server;
+  }
+
+  public void registerExtraServlets(List<String> servlets) {
+    HttpContext extra = new HttpContext();
+
+    extra.setContextPath("/extra");
+    ServletHandler handler = new ServletHandler();
+    handler.addServlet("/resources/*", ResourceServlet.class.getName());
+
+    for (String s : servlets) {
+      Class<? extends Servlet> servletClass = createServlet(s);
+      if (servletClass != null) {
+        String path = "/" + servletClass.getSimpleName() + "/*";
+        String clazz = servletClass.getCanonicalName();
+        handler.addServlet(path, clazz);
+        LOGGER.info("started extra node servlet visible at : http://xxx:"
+                    + configuration.getPort() + "/extra" + path);
+      }
+    }
+    extra.addHandler(handler);
+    server.addContext(extra);
+  }
+
+  private Class<? extends Servlet> createServlet(String className) {
+    try {
+      return Class.forName(className).asSubclass(Servlet.class);
+    } catch (ClassNotFoundException e) {
+      LOGGER.error(
+        "The specified class : " + className + " cannot be instantiated " + e.getMessage());
+    }
+    return null;
   }
 
   public InputStream getResourceAsStream(String path) throws IOException {
@@ -585,6 +625,7 @@ public class SeleniumServer implements SslCertificateGenerator {
 
   /**
    * Registers a running browser session
+   * @param sessionInfo session info
    */
   public void registerBrowserSession(BrowserSessionInfo sessionInfo) {
     driver.registerBrowserSession(sessionInfo);
@@ -592,6 +633,7 @@ public class SeleniumServer implements SslCertificateGenerator {
 
   /**
    * De-registers a previously registered running browser session
+   * @param sessionInfo session info
    */
   public void deregisterBrowserSession(BrowserSessionInfo sessionInfo) {
     driver.deregisterBrowserSession(sessionInfo);

@@ -17,249 +17,252 @@
 # specific language governing permissions and limitations
 # under the License.
 
-require File.expand_path("../spec_helper", __FILE__)
+require_relative 'spec_helper'
 
-describe "Selenium::WebDriver::TargetLocator" do
-  let(:wait) { Selenium::WebDriver::Wait.new }
-
-  # Edge does not yet support session/:session_id/element/active
-  not_compliant_on :browser => :edge do
-    it "should find the active element" do
-      driver.navigate.to url_for("xhtmlTest.html")
-      driver.switch_to.active_element.should be_an_instance_of(WebDriver::Element)
+not_compliant_on :driver => :remote, :browser => :marionette do
+  describe "Selenium::WebDriver::TargetLocator" do
+    after do
+      reset_driver!
     end
-  end
 
-  # Edge does not yet support /session/:sessionId/frame
-  not_compliant_on :browser => [:iphone, :edge] do
+    let(:wait) { Selenium::WebDriver::Wait.new }
+    let(:new_window) { driver.window_handles.find {|handle| handle != driver.window_handle} }
+
+    # Marionette Bug -
+    # POST /session/f7082a32-e685-2843-ad2c-5bb6f376dac5/element/active
+    # did not match a known command
+    not_compliant_on :driver => :marionette do
+      it "should find the active element" do
+        driver.navigate.to url_for("xhtmlTest.html")
+        expect(driver.switch_to.active_element).to be_an_instance_of(WebDriver::Element)
+      end
+    end
+
     it "should switch to a frame" do
       driver.navigate.to url_for("iframes.html")
       driver.switch_to.frame("iframe1")
 
-      driver.find_element(:name, 'login').should be_kind_of(WebDriver::Element)
+      expect(driver.find_element(:name, 'login')).to be_kind_of(WebDriver::Element)
     end
 
-    # Edge does not yet support /session/:sessionId/frame
-    not_compliant_on :browser => :edge do
-      it "should switch to a frame by Element" do
-        driver.navigate.to url_for("iframes.html")
-
-        iframe = driver.find_element(:tag_name => "iframe")
-        driver.switch_to.frame(iframe)
-
-        driver.find_element(:name, 'login').should be_kind_of(WebDriver::Element)
-      end
-    end
-  end
-
-  # Edge does not yet support /session/:sessionId/frame/parent
-  not_compliant_on :browser => [:safari, :phantomjs, :edge] do
-    it "should switch to parent frame" do
+    it "should switch to a frame by Element" do
       driver.navigate.to url_for("iframes.html")
 
       iframe = driver.find_element(:tag_name => "iframe")
       driver.switch_to.frame(iframe)
 
-      driver.find_element(:name, 'login').should be_kind_of(WebDriver::Element)
-
-      driver.switch_to.parent_frame
-      driver.find_element(:id, 'iframe_page_heading').should be_kind_of(WebDriver::Element)
-    end
-  end
-
-  # Edge implements switching with w3c specs, not json
-  # Edge also appears to have issues closing windows
-  # switching by name not yet supported by safari
-  not_compliant_on :browser => [:ie, :iphone, :safari, :edge] do
-    after do
-      reset_driver!
+      expect(driver.find_element(:name, 'login')).to be_kind_of(WebDriver::Element)
     end
 
-    it "should switch to a window and back when given a block" do
-      driver.navigate.to url_for("xhtmlTest.html")
+    # Marionette Bug - Marionette Error: switchToParentFrame
+    not_compliant_on({:browser => [:safari, :phantomjs]},
+                     {:driver => :marionette}) do
+      it "should switch to parent frame" do
+        driver.navigate.to url_for("iframes.html")
 
-      driver.find_element(:link, "Open new window").click
-      driver.title.should == "XHTML Test Page"
+        iframe = driver.find_element(:tag_name => "iframe")
+        driver.switch_to.frame(iframe)
 
-      driver.switch_to.window("result") do
-        wait.until { driver.title == "We Arrive Here" }
+        expect(driver.find_element(:name, 'login')).to be_kind_of(WebDriver::Element)
+
+        driver.switch_to.parent_frame
+        expect(driver.find_element(:id, 'iframe_page_heading')).to be_kind_of(WebDriver::Element)
       end
-
-      wait.until { driver.title == "XHTML Test Page" }
-
     end
 
-    it "should handle exceptions inside the block" do
-      driver.navigate.to url_for("xhtmlTest.html")
+    not_compliant_on :browser => [:ie, :iphone, :safari] do
+      it "should switch to a window and back when given a block" do
+        driver.navigate.to url_for("xhtmlTest.html")
 
-      driver.find_element(:link, "Open new window").click
-      driver.title.should == "XHTML Test Page"
+        driver.find_element(:link, "Open new window").click
+        expect(driver.title).to eq("XHTML Test Page")
 
-      lambda {
-        driver.switch_to.window("result") { raise "foo" }
-      }.should raise_error(RuntimeError, "foo")
+        driver.switch_to.window(new_window) do
+          wait.until { driver.title == "We Arrive Here" }
+        end
 
-      driver.title.should == "XHTML Test Page"
-    end
-
-    it "should switch to a window" do
-      driver.navigate.to url_for("xhtmlTest.html")
-
-      driver.find_element(:link, "Open new window").click
-      driver.title.should == "XHTML Test Page"
-
-      driver.switch_to.window("result")
-      driver.title.should == "We Arrive Here"
-    end
-
-    it "should use the original window if the block closes the popup" do
-      driver.navigate.to url_for("xhtmlTest.html")
-
-      driver.find_element(:link, "Open new window").click
-      driver.title.should == "XHTML Test Page"
-
-      driver.switch_to.window("result") do
-        wait.until { driver.title == "We Arrive Here" }
-        driver.close
-      end
-
-      driver.current_url.should include("xhtmlTest.html")
-      driver.title.should == "XHTML Test Page"
-    end
-
-    it "should close current window when more than two windows exist" do
-      driver.navigate.to url_for("xhtmlTest.html")
-      driver.find_element(:link, "Create a new anonymous window").click
-      driver.find_element(:link, "Open new window").click
-
-      wait.until { driver.window_handles.size == 3 }
-
-      driver.switch_to.window(driver.window_handle) {driver.close}
-      expect(driver.window_handles.size).to eq 2
-    end
-
-    it "should close another window when more than two windows exist" do
-      driver.navigate.to url_for("xhtmlTest.html")
-      driver.find_element(:link, "Create a new anonymous window").click
-      driver.find_element(:link, "Open new window").click
-
-      wait.until { driver.window_handles.size == 3 }
-
-      window_to_close = driver.window_handles.last
-
-      driver.switch_to.window(window_to_close) { driver.close }
-      expect(driver.window_handles.size).to eq 2
-    end
-
-    it "should iterate over open windows when current window is not closed" do
-      driver.navigate.to url_for("xhtmlTest.html")
-      driver.find_element(:link, "Create a new anonymous window").click
-      driver.find_element(:link, "Open new window").click
-
-      wait.until { driver.window_handles.size == 3 }
-
-      new_window = driver.window_handles.find do |wh|
-        driver.switch_to.window(wh) { driver.title == "We Arrive Here" }
-      end
-
-      driver.switch_to.window(new_window)
-      driver.title.should == "We Arrive Here"
-    end
-
-    it "should iterate over open windows when current window is closed" do
-      driver.navigate.to url_for("xhtmlTest.html")
-      driver.find_element(:link, "Create a new anonymous window").click
-      driver.find_element(:link, "Open new window").click
-
-      wait.until { driver.window_handles.size == 3 }
-
-      driver.close
-
-      new_window = driver.window_handles.find do |wh|
-        driver.switch_to.window(wh) { driver.title == "We Arrive Here" }
-      end
-
-      driver.switch_to.window(new_window)
-      driver.title.should == "We Arrive Here"
-    end
-
-    it "should switch to a window and execute a block when current window is closed" do
-      driver.navigate.to url_for("xhtmlTest.html")
-      driver.find_element(:link, "Open new window").click
-
-      wait.until { driver.window_handles.size == 2 }
-
-      driver.switch_to.window("result")
-      wait.until { driver.title == "We Arrive Here" }
-
-      driver.close
-
-      driver.switch_to.window(driver.window_handles.first) do
         wait.until { driver.title == "XHTML Test Page" }
+
       end
 
-      driver.title.should == "XHTML Test Page"
-    end
-  end
+      it "should handle exceptions inside the block" do
+        driver.navigate.to url_for("xhtmlTest.html")
 
-  # Edge does not yet support /session/:sessionId/frame
-  not_compliant_on :browser => [:android, :iphone, :safari, :edge] do
-    it "should switch to default content" do
-      driver.navigate.to url_for("iframes.html")
+        driver.find_element(:link, "Open new window").click
+        expect(driver.title).to eq("XHTML Test Page")
 
-      driver.switch_to.frame 0
-      driver.switch_to.default_content
+        expect {
+          driver.switch_to.window(new_window) { raise "foo" }
+        }.to raise_error(RuntimeError, "foo")
 
-      driver.find_element(:id => "iframe_page_heading")
-    end
-  end
-
-  describe "alerts" do
-    not_compliant_on :browser => [:iphone, :safari, :phantomjs] do
-      it "allows the user to accept an alert" do
-        driver.navigate.to url_for("alerts.html")
-        driver.find_element(:id => "alert").click
-
-        alert = wait_for_alert
-        alert.accept
-
-        driver.title.should == "Testing Alerts"
-      end
-    end
-
-    not_compliant_on({:browser => :chrome, :platform => :macosx},
-                     {:browser => :iphone},
-                     {:browser => :safari},
-                     {:browser => :phantomjs}) do
-      it "allows the user to dismiss an alert" do
-        driver.navigate.to url_for("alerts.html")
-        driver.find_element(:id => "alert").click
-
-        alert = wait_for_alert
-        alert.dismiss
-
-        wait_for_no_alert
-
-        driver.title.should == "Testing Alerts"
-      end
-    end
-
-    # Edge does not yet support session/:session_id/alert_text
-    not_compliant_on :browser => [:iphone, :safari, :phantomjs, :edge] do
-      it "allows the user to set the value of a prompt" do
-        driver.navigate.to url_for("alerts.html")
-        driver.find_element(:id => "prompt").click
-
-        alert = wait_for_alert
-        alert.send_keys "cheese"
-        alert.accept
-
-        text = driver.find_element(:id => "text").text
-        text.should == "cheese"
+        expect(driver.title).to eq("XHTML Test Page")
       end
 
-      # Edge does not yet support session/:session_id/alert_text
+      it "should switch to a window without a block" do
+        driver.navigate.to url_for("xhtmlTest.html")
+
+        driver.find_element(:link, "Open new window").click
+        expect(driver.title).to eq("XHTML Test Page")
+
+        driver.switch_to.window(new_window)
+        expect(driver.title).to eq("We Arrive Here")
+      end
+
+      # Edge BUG - https://connect.microsoft.com/IE/feedback/details/1850028
       not_compliant_on :browser => :edge do
+        it "should use the original window if the block closes the popup" do
+          driver.navigate.to url_for("xhtmlTest.html")
+
+          driver.find_element(:link, "Open new window").click
+          expect(driver.title).to eq("XHTML Test Page")
+
+          driver.switch_to.window(new_window) do
+            wait.until { driver.title == "We Arrive Here" }
+            driver.close
+          end
+
+          expect(driver.current_url).to include("xhtmlTest.html")
+          expect(driver.title).to eq("XHTML Test Page")
+        end
+      end
+
+      # Marionette BUG: Automatically switches browsing context to new window when it opens.
+      not_compliant_on :driver => :marionette do
+        it "should close current window when more than two windows exist" do
+          driver.navigate.to url_for("xhtmlTest.html")
+          driver.find_element(:link, "Create a new anonymous window").click
+          driver.find_element(:link, "Open new window").click
+
+          wait.until { driver.window_handles.size == 3 }
+
+          driver.switch_to.window(driver.window_handle) {driver.close}
+          expect(driver.window_handles.size).to eq 2
+        end
+
+        it "should close another window when more than two windows exist" do
+          driver.navigate.to url_for("xhtmlTest.html")
+          driver.find_element(:link, "Create a new anonymous window").click
+          driver.find_element(:link, "Open new window").click
+
+          wait.until { driver.window_handles.size == 3 }
+
+          window_to_close = driver.window_handles.last
+
+          driver.switch_to.window(window_to_close) { driver.close }
+          expect(driver.window_handles.size).to eq 2
+        end
+
+        it "should iterate over open windows when current window is not closed" do
+          driver.navigate.to url_for("xhtmlTest.html")
+          driver.find_element(:link, "Create a new anonymous window").click
+          driver.find_element(:link, "Open new window").click
+
+          wait.until { driver.window_handles.size == 3 }
+
+          matching_window = driver.window_handles.find do |wh|
+            driver.switch_to.window(wh) { driver.title == "We Arrive Here" }
+          end
+
+          driver.switch_to.window(matching_window)
+          expect(driver.title).to eq("We Arrive Here")
+        end
+
+        it "should iterate over open windows when current window is closed" do
+          driver.navigate.to url_for("xhtmlTest.html")
+          driver.find_element(:link, "Create a new anonymous window").click
+          driver.find_element(:link, "Open new window").click
+
+          wait.until { driver.window_handles.size == 3 }
+
+          driver.close
+
+          matching_window = driver.window_handles.find do |wh|
+            driver.switch_to.window(wh) { driver.title == "We Arrive Here" }
+          end
+
+          driver.switch_to.window(matching_window)
+          expect(driver.title).to eq("We Arrive Here")
+        end
+      end
+
+      # Edge BUG - https://connect.microsoft.com/IE/feedback/details/1850028
+      not_compliant_on :browser => :edge do
+        it "should switch to a window and execute a block when current window is closed" do
+          driver.navigate.to url_for("xhtmlTest.html")
+          driver.find_element(:link, "Open new window").click
+
+          wait.until { driver.window_handles.size == 2 }
+
+          driver.switch_to.window(new_window)
+          wait.until { driver.title == "We Arrive Here" }
+
+          driver.close
+
+          driver.switch_to.window(driver.window_handles.first) do
+            wait.until { driver.title == "XHTML Test Page" }
+          end
+
+          expect(driver.title).to eq("XHTML Test Page")
+        end
+      end
+    end
+
+    not_compliant_on :browser => [:android, :iphone, :safari] do
+      it "should switch to default content" do
+        driver.navigate.to url_for("iframes.html")
+
+        driver.switch_to.frame 0
+        driver.switch_to.default_content
+
+        driver.find_element(:id => "iframe_page_heading")
+      end
+    end
+
+    # Edge BUG - https://connect.microsoft.com/IE/feedback/details/1850030
+    not_compliant_on :browser => [:iphone, :safari, :phantomjs, :edge] do
+      describe "alerts" do
+        it "allows the user to accept an alert" do
+          driver.navigate.to url_for("alerts.html")
+          driver.find_element(:id => "alert").click
+
+          alert = wait_for_alert
+          alert.accept
+
+          expect(driver.title).to eq("Testing Alerts")
+        end
+
+        not_compliant_on({:browser => :chrome, :platform => :macosx}) do
+          it "allows the user to dismiss an alert" do
+            driver.navigate.to url_for("alerts.html")
+            driver.find_element(:id => "alert").click
+
+            alert = wait_for_alert
+            alert.dismiss
+
+            wait_for_no_alert
+
+            expect(driver.title).to eq("Testing Alerts")
+          end
+        end
+
+        # Marionette BUG - http://www.w3.org/TR/webdriver/#send-alert-text
+        # Says message should be an array (I think), but we're getting
+        # InvalidArgumentError: 'message' not a string
+        # When trying a string, error: keysToSend.join is not a function
+        not_compliant_on :driver => :marionette do
+          it "allows the user to set the value of a prompt" do
+            driver.navigate.to url_for("alerts.html")
+            driver.find_element(:id => "prompt").click
+
+            alert = wait_for_alert
+            alert.send_keys "cheese"
+            alert.accept
+
+            text = driver.find_element(:id => "text").text
+            expect(text).to eq("cheese")
+          end
+        end
+
         it "allows the user to get the text of an alert" do
           driver.navigate.to url_for("alerts.html")
           driver.find_element(:id => "alert").click
@@ -268,12 +271,9 @@ describe "Selenium::WebDriver::TargetLocator" do
           text = alert.text
           alert.accept
 
-          text.should == "cheese"
+          expect(text).to eq("cheese")
         end
-      end
 
-      # Edge does not yet support session/:session_id/alert_text
-      not_compliant_on :browser => :edge do
         it "raises when calling #text on a closed alert" do
           driver.navigate.to url_for("alerts.html")
           driver.find_element(:id => "alert").click
@@ -281,31 +281,33 @@ describe "Selenium::WebDriver::TargetLocator" do
           alert = wait_for_alert
           alert.accept
 
-          expect { alert.text }.to raise_error(Selenium::WebDriver::Error::NoAlertPresentError)
+          expect { alert.text }.to raise_error(Selenium::WebDriver::Error::NoSuchAlertError)
+        end
+
+        not_compliant_on :browser => :ie do
+          it "raises NoAlertOpenError if no alert is present" do
+            expect { driver.switch_to.alert }.to raise_error(Selenium::WebDriver::Error::NoSuchAlertError, /alert|modal/i)
+          end
+        end
+
+        compliant_on :browser => [:firefox, :ie] do
+          # Marionette BUG - Allows driver calls with alert present
+          # Spec says: "If the subsequent requested command is not one listed
+          # in this chapter, an unexpected alert open error will be returned."
+          not_compliant_on :driver => :marionette do
+
+            it "raises an UnhandledAlertError if an alert has not been dealt with" do
+              driver.navigate.to url_for("alerts.html")
+              driver.find_element(:id => "alert").click
+              wait_for_alert
+
+              expect { driver.title }.to raise_error(Selenium::WebDriver::Error::UnhandledAlertError, /cheese/)
+
+              expect(driver.title).to eq("Testing Alerts") # :chrome does not auto-dismiss the alert
+            end
+          end
         end
       end
-
     end
-
-    not_compliant_on :browser => [:ie, :iphone, :safari, :phantomjs] do
-      it "raises NoAlertOpenError if no alert is present" do
-        lambda { driver.switch_to.alert }.should raise_error(
-          Selenium::WebDriver::Error::NoAlertPresentError, /alert|modal dialog/i)
-      end
-    end
-
-    compliant_on :browser => [:firefox, :ie] do
-      it "raises an UnhandledAlertError if an alert has not been dealt with" do
-        driver.navigate.to url_for("alerts.html")
-        driver.find_element(:id => "alert").click
-        wait_for_alert
-
-        lambda { driver.title }.should raise_error(Selenium::WebDriver::Error::UnhandledAlertError, /cheese/)
-
-        driver.title.should == "Testing Alerts" # :chrome does not auto-dismiss the alert
-      end
-    end
-
   end
 end
-

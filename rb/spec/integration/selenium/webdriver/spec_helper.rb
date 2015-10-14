@@ -23,7 +23,7 @@ require 'rspec'
 require 'ci/reporter/rspec'
 
 require 'selenium-webdriver'
-require 'selenium/webdriver/spec_support'
+require_relative 'spec_support'
 
 include Selenium
 
@@ -37,7 +37,11 @@ RSpec.configure do |c|
   c.include(WebDriver::SpecSupport::Helpers)
   c.before(:suite) do
     if GlobalTestEnv.driver == :remote
-      GlobalTestEnv.remote_server.start
+      server = GlobalTestEnv.remote_server
+      if GlobalTestEnv.browser == :marionette
+        server << "-Dwebdriver.firefox.bin=#{ENV['MARIONETTE_PATH']}"
+      end
+      server.start
     end
   end
 

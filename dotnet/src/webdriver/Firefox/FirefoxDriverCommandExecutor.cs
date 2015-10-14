@@ -48,12 +48,25 @@ namespace OpenQA.Selenium.Firefox
         }
 
         /// <summary>
+        /// Gets the repository of objects containin information about commands.
+        /// </summary>
+        public CommandInfoRepository CommandInfoRepository
+        {
+            get { return this.internalExecutor.CommandInfoRepository; }
+        }
+
+        /// <summary>
         /// Executes a command
         /// </summary>
         /// <param name="commandToExecute">The command you wish to execute</param>
         /// <returns>A response from the browser</returns>
         public Response Execute(Command commandToExecute)
         {
+            if (commandToExecute == null)
+            {
+                throw new ArgumentNullException("commandToExecute", "Command may not be null");
+            }
+
             Response toReturn = null;
             if (commandToExecute.Name == DriverCommand.NewSession)
             {

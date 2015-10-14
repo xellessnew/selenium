@@ -221,6 +221,11 @@ namespace OpenQA.Selenium.Safari.Internal
         /// <param name="e">A <see cref="StandardHttpRequestReceivedEventArgs"/> that contains the event data.</param>
         protected void OnStandardHttpRequestReceived(StandardHttpRequestReceivedEventArgs e)
         {
+            if (e == null)
+            {
+                throw new ArgumentNullException("e", "Event arguments cannot be null");
+            }
+
             if (this.StandardHttpRequestReceived != null)
             {
                 // The event handler is to be fired, so set the Handled
@@ -266,9 +271,9 @@ namespace OpenQA.Selenium.Safari.Internal
             this.Socket.Receive(buffer, 0);
         }
 
-        private void CreateHandler(IEnumerable<byte> data)
+        private void CreateHandler(IEnumerable<byte> dataToParse)
         {
-            var request = this.parser.Parse(data.ToArray(), this.scheme);
+            var request = this.parser.Parse(dataToParse.ToArray(), this.scheme);
             if (request == null)
             {
                 return;

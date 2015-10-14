@@ -166,13 +166,42 @@ namespace OpenQA.Selenium.Firefox
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FirefoxDriver"/> class using the specified options. Uses the Mozilla-provided Marionette driver implementation.
+        /// </summary>
+        /// <param name="options">The <see cref="FirefoxOptions"/> to be used with the Firefox driver.</param>
+        public FirefoxDriver(FirefoxOptions options)
+            : this(FirefoxDriverService.CreateDefaultService(), options, RemoteWebDriver.DefaultCommandTimeout)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FirefoxDriver"/> class using the specified driver service. Uses the Mozilla-provided Marionette driver implementation.
+        /// </summary>
+        /// <param name="service">The <see cref="FirefoxDriverService"/> used to initialize the driver.</param>
+        public FirefoxDriver(FirefoxDriverService service)
+            : this(service, new FirefoxOptions(), RemoteWebDriver.DefaultCommandTimeout)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FirefoxDriver"/> class using the specified options, driver service, and timeout. Uses the Mozilla-provided Marionette driver implementation.
+        /// </summary>
+        /// <param name="service">The <see cref="FirefoxDriverService"/> to use.</param>
+        /// <param name="options">The <see cref="FirefoxOptions"/> to be used with the Firefox driver.</param>
+        /// <param name="commandTimeout">The maximum amount of time to wait for each command.</param>
+        public FirefoxDriver(FirefoxDriverService service, FirefoxOptions options, TimeSpan commandTimeout)
+            : base(new DriverServiceCommandExecutor(service, commandTimeout), options.ToCapabilities())
+        {
+        }
+        #endregion
+
         private FirefoxDriver(FirefoxBinary binary, FirefoxProfile profile, ICapabilities capabilities, TimeSpan commandTimeout)
             : base(CreateExtensionConnection(binary, profile, commandTimeout), RemoveUnneededCapabilities(capabilities))
         {
             this.binary = binary;
             this.profile = profile;
         }
-        #endregion
 
         #region Properties
         /// <summary>
@@ -189,6 +218,17 @@ namespace OpenQA.Selenium.Firefox
         {
             get { return base.FileDetector; }
             set { }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the Firefox driver instance uses
+        /// Mozilla's Marionette implementation. This is a temporary property
+        /// and will be removed when Marionette is available for the release
+        /// channel of Firefox.
+        /// </summary>
+        public bool IsMarionette
+        {
+            get { return this.IsSpecificationCompliant; }
         }
 
         /// <summary>
@@ -313,8 +353,8 @@ namespace OpenQA.Selenium.Firefox
         private static ICapabilities RemoveUnneededCapabilities(ICapabilities capabilities)
         {
             DesiredCapabilities caps = capabilities as DesiredCapabilities;
-            caps.Capabilities.Remove(FirefoxDriver.ProfileCapabilityName);
-            caps.Capabilities.Remove(FirefoxDriver.BinaryCapabilityName);
+            caps.CapabilitiesDictionary.Remove(FirefoxDriver.ProfileCapabilityName);
+            caps.CapabilitiesDictionary.Remove(FirefoxDriver.BinaryCapabilityName);
             return caps;
         }
         #endregion

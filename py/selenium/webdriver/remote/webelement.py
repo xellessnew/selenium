@@ -16,6 +16,7 @@
 # under the License.
 
 import hashlib
+from numbers import Number
 import os
 import zipfile
 try:
@@ -53,6 +54,11 @@ class WebElement(object):
         self._parent = parent
         self._id = id_
         self._w3c = w3c
+
+    def __repr__(self):
+        return '<{0.__module__}.{0.__name__} (session="{1}", element="{2}")>'.format(
+            type(self), self._parent.session_id, self._id)
+
 
     @property
     def tag_name(self):
@@ -312,7 +318,7 @@ class WebElement(object):
         for val in value:
             if isinstance(val, Keys):
                 typing.append(val)
-            elif isinstance(val, int):
+            elif isinstance(val, Number):
                 val = val.__str__()
                 for i in range(len(val)):
                     typing.append(val[i])

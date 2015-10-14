@@ -58,14 +58,12 @@ public class I18nTest extends JUnit4TestBase {
    */
   private static final String tokyo = "\u6771\u4EAC";
 
-  @Ignore({MARIONETTE})
   @Test
   public void testCn() {
     driver.get(pages.chinesePage);
     driver.findElement(By.linkText(Messages.getString("I18nTest.link1"))).click();
   }
 
-  @Ignore({MARIONETTE})
   @Test
   public void testEnteringHebrewTextFromLeftToRight() {
     driver.get(pages.chinesePage);
@@ -76,7 +74,6 @@ public class I18nTest extends JUnit4TestBase {
     assertEquals(shalom, input.getAttribute("value"));
   }
 
-  @Ignore({MARIONETTE})
   @Test
   public void testEnteringHebrewTextFromRightToLeft() {
     driver.get(pages.chinesePage);
@@ -90,16 +87,11 @@ public class I18nTest extends JUnit4TestBase {
   @Test
   @Ignore(
       value = {MARIONETTE, CHROME},
-      reason = "MARIONETTE: not checked, "
-               + "CHROME: ChromeDriver only supports characters in the BMP")
+      reason = "CHROME: ChromeDriver only supports characters in the BMP")
   public void testEnteringSupplementaryCharacters() {
     assumeFalse("IE: versions less thank 10 have issue 5069",
                 TestUtilities.isInternetExplorer(driver) &&
                 TestUtilities.getIEVersion(driver) < 10);
-    assumeFalse("FF: native events at linux broke it - see issue 5069",
-                TestUtilities.isFirefox(driver) &&
-                TestUtilities.isNativeEventsEnabled(driver) &&
-                TestUtilities.getEffectivePlatform().is(Platform.LINUX));
     driver.get(pages.chinesePage);
 
     String input = "";
@@ -117,7 +109,6 @@ public class I18nTest extends JUnit4TestBase {
 
   @NeedsFreshDriver
   @Test
-  @Ignore(MARIONETTE)
   public void testShouldBeAbleToReturnTheTextInAPage() {
     String url = GlobalTestEnvironment.get()
         .getAppServer()
@@ -131,15 +122,12 @@ public class I18nTest extends JUnit4TestBase {
 
   @NeedsFreshDriver
   @Ignore(value = {IE, CHROME, FIREFOX},
-      reason = "Not implemented on anything other than"
-          + "Firefox/Linux at the moment.")
+          reason = "Not implemented on anything other than Firefox/Linux at the moment.")
   @NotYetImplemented(HTMLUNIT)
   @Test
   public void testShouldBeAbleToActivateIMEEngine() throws InterruptedException {
     assumeTrue("IME is supported on Linux only.",
                TestUtilities.getEffectivePlatform().is(Platform.LINUX));
-    assumeTrue("Native events are disabled, IME will not work.",
-               TestUtilities.isNativeEventsEnabled(driver));
 
     driver.get(pages.formPage);
 
@@ -181,16 +169,11 @@ public class I18nTest extends JUnit4TestBase {
         + " It was:" + elementValue, elementValue.equals(tokyo));
   }
 
-  @Ignore(value = {IE, CHROME},
-      reason = "Not implemented on anything other than"
-          + "Firefox/Linux at the moment.")
-  @NotYetImplemented(HTMLUNIT)
+  @Ignore(value = {IE, CHROME, FIREFOX})
   @Test
   public void testShouldBeAbleToInputJapanese() {
     assumeTrue("IME is supported on Linux only.",
                TestUtilities.getEffectivePlatform().is(Platform.LINUX));
-    assumeTrue("Native events are disabled, IME will not work.",
-               TestUtilities.isNativeEventsEnabled(driver));
 
     driver.get(pages.formPage);
 

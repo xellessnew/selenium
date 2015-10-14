@@ -18,8 +18,6 @@
 package org.openqa.grid.internal.utils;
 
 import static org.openqa.grid.common.RegistrationRequest.AUTO_REGISTER;
-import static org.openqa.grid.internal.utils.ServerJsonValues.BROWSER_TIMEOUT;
-import static org.openqa.grid.internal.utils.ServerJsonValues.CLIENT_TIMEOUT;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -36,14 +34,10 @@ import org.openqa.grid.common.exception.GridConfigurationException;
 import org.openqa.grid.common.exception.GridException;
 import org.openqa.grid.web.servlet.ResourceServlet;
 import org.openqa.grid.web.utils.ExtraServletUtil;
-import org.openqa.jetty.http.HttpContext;
-import org.openqa.jetty.jetty.Server;
-import org.openqa.jetty.jetty.servlet.ServletHandler;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.internal.HttpClientFactory;
 import org.openqa.selenium.remote.server.log.LoggingManager;
-import org.openqa.selenium.server.RemoteControlConfiguration;
 import org.openqa.selenium.server.SeleniumServer;
 
 import java.io.BufferedReader;
@@ -56,8 +50,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import javax.servlet.Servlet;
 
 public class SelfRegisteringRemote {
 
@@ -90,19 +82,17 @@ public class SelfRegisteringRemote {
 
     System.setProperty("org.openqa.jetty.http.HttpRequest.maxFormContentSize", "0");
 
-
     nodeConfig.validate();
-    RemoteControlConfiguration remoteControlConfiguration = nodeConfig.getRemoteControlConfiguration();
 
     try {
       JsonObject hubParameters = getHubConfiguration();
-      if (hubParameters.has(CLIENT_TIMEOUT.getKey())){
-        int timeout = hubParameters.get(CLIENT_TIMEOUT.getKey()).getAsInt() / 1000;
-        remoteControlConfiguration.setTimeoutInSeconds(timeout);
+      if (hubParameters.has(RegistrationRequest.TIME_OUT)){
+        int timeout = hubParameters.get(RegistrationRequest.TIME_OUT).getAsInt() / 1000;
+        nodeConfig.getConfiguration().put(RegistrationRequest.TIME_OUT, timeout);
       }
-      if (hubParameters.has(BROWSER_TIMEOUT.getKey())) {
-        int browserTimeout = hubParameters.get(BROWSER_TIMEOUT.getKey()).getAsInt();
-        remoteControlConfiguration.setBrowserTimeoutInMs(browserTimeout);
+      if (hubParameters.has(RegistrationRequest.BROWSER_TIME_OUT)) {
+        int browserTimeout = hubParameters.get(RegistrationRequest.BROWSER_TIME_OUT).getAsInt();
+        nodeConfig.getConfiguration().put(RegistrationRequest.BROWSER_TIME_OUT, browserTimeout);
       }
     } catch (Exception e) {
       LOG.warning(
@@ -110,32 +100,11 @@ public class SelfRegisteringRemote {
           .getMessage());
     }
 
-    server = new SeleniumServer(remoteControlConfiguration);
-
-    Server jetty = server.getServer();
+    server = new SeleniumServer(nodeConfig.getConfiguration());
 
     String servletsStr = (String) nodeConfig.getConfiguration().get(RegistrationRequest.SERVLETS);
     if (servletsStr != null) {
-      List<String> servlets = Arrays.asList(servletsStr.split(","));
-
-      HttpContext extra = new HttpContext();
-
-      extra.setContextPath("/extra");
-      ServletHandler handler = new ServletHandler();
-      handler.addServlet("/resources/*", ResourceServlet.class.getName());
-
-      for (String s : servlets) {
-        Class<? extends Servlet> servletClass = ExtraServletUtil.createServlet(s);
-        if (servletClass != null) {
-          String path = "/" + servletClass.getSimpleName() + "/*";
-          String clazz = servletClass.getCanonicalName();
-          handler.addServlet(path, clazz);
-          LOG.info("started extra node servlet visible at : http://xxx:"
-                   + nodeConfig.getConfiguration().get(RegistrationRequest.PORT) + "/extra" + path);
-        }
-      }
-      extra.addHandler(handler);
-      jetty.addContext(extra);
+      server.registerExtraServlets(Arrays.asList(servletsStr.split(",")));
     }
 
     server.boot();
@@ -151,10 +120,9 @@ public class SelfRegisteringRemote {
     nodeConfig.getCapabilities().clear();
   }
 
-  // TODO freynaud keep specified platform if specified. At least for unit test purpose.
   /**
    * Adding the browser described by the capability, automatically finding out what platform the
-   * node is launched from ( and overriding it if it was specified )
+   * node is launched from
    *
    * @param cap describing the browser
    * @param instances number of times this browser can be started on the node.
@@ -164,7 +132,9 @@ public class SelfRegisteringRemote {
     if (s == null || "".equals(s)) {
       throw new InvalidParameterException(cap + " does seems to be a valid browser.");
     }
-    cap.setPlatform(Platform.getCurrent());
+    if (cap.getPlatform() == null) {
+      cap.setPlatform(Platform.getCurrent());
+    }
     cap.setCapability(RegistrationRequest.MAX_INSTANCES, instances);
     nodeConfig.getCapabilities().add(cap);
   }
@@ -179,9 +149,9 @@ public class SelfRegisteringRemote {
 
   /**
    * register the hub following the configuration :
-   * <p/>
+   * <p>
    * - check if the proxy is already registered before sending a reg request.
-   * <p/>
+   * <p>
    * - register again every X ms is specified in the config of the node.
    */
   public void startRegistrationProcess() {
@@ -276,7 +246,7 @@ public class SelfRegisteringRemote {
 
   /**
    * uses the hub API to get some of its configuration.
-   * @return
+   * @return json object of the current hub configuration
    * @throws Exception
    */
   private JsonObject getHubConfiguration() throws Exception {
@@ -289,11 +259,7 @@ public class SelfRegisteringRemote {
     URL api = new URL(hubApi);
     HttpHost host = new HttpHost(api.getHost(), api.getPort());
     String url = api.toExternalForm();
-    BasicHttpEntityEnclosingRequest r = new BasicHttpEntityEnclosingRequest("GET", url);
-
-    JsonObject j = new JsonObject();
-    j.add("configuration", new JsonArray());
-    r.setEntity(new StringEntity(j.toString()));
+    BasicHttpRequest r = new BasicHttpRequest("GET", url);
 
     HttpResponse response = client.execute(host, r);
     return extractObject(response);
