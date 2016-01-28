@@ -23,73 +23,114 @@ module Selenium
   module WebDriver
 
     describe Firefox do
-      before(:each) do
-        unless ENV['MARIONETTE_PATH']
-          pending "Set ENV['MARIONETTE_PATH'] to test Marionette enabled Firefox installations"
-        end
+      before do
+        @opt = GlobalTestEnv.remote_server? ? {:url => GlobalTestEnv.remote_server.webdriver_url} : {}
       end
 
-      compliant_on({:driver => :remote, :browser => :firefox}, {:driver => :firefox}) do
-        it "Does not use wires by default when designated binary includes Marionette" do
-          temp_driver = Selenium::WebDriver.for :firefox
-          expect(temp_driver.instance_variable_get('@bridge').instance_variable_get('@launcher')).to_not be_nil
-          temp_driver.quit
-        end
+      compliant_on :driver => :marionette do
+        it "takes a binary path as an argument" do
+          pending "Set ENV['ALTERNATE_FIREFOX_PATH'] to test this" unless ENV['ALTERNATE_FIREFOX_PATH']
+          pending "Set ENV['MARIONETTE_PATH'] to test this" unless ENV['MARIONETTE_PATH']
 
-        it "Does not use wires by default when designated binary does not use Marionette" do
-          marionette_path = ENV['MARIONETTE_PATH']
-          ENV['MARIONETTE_PATH'] = nil
-          Firefox::Binary.instance_variable_set(:"@path", nil)
+          begin
+            caps = Remote::Capabilities.firefox(:firefox_binary => ENV['MARIONETTE_PATH'])
+            driver1 = Selenium::WebDriver.for :firefox, :desired_capabilities => caps, :marionette => true
 
-          temp_driver = Selenium::WebDriver.for :firefox
-          expect(temp_driver.instance_variable_get('@bridge').instance_variable_get('@launcher')).to_not be_nil
-          temp_driver.quit
-          ENV['MARIONETTE_PATH'] = marionette_path
-        end
-      end
+            default_version = driver1.capabilities.version
+            driver1.quit
 
-      compliant_on({:driver => :remote, :browser => :marionette}, {:driver => :marionette}) do
+            caps = Remote::Capabilities.firefox(:firefox_binary => ENV['ALTERNATE_FIREFOX_PATH'])
+            driver2 = Selenium::WebDriver.for :firefox, :desired_capabilities => caps, :marionette => true
 
-        context "when designated firefox installation includes Marionette" do
-
-          it "Uses Wires when initialized with W3C desired_capabilities" do
-            caps = Selenium::WebDriver::Remote::W3CCapabilities.firefox
-            expect do
-              temp_driver = Selenium::WebDriver.for :firefox, :desired_capabilities => caps
-              temp_driver.quit
-            end.to_not raise_exception
-          end
-
-          it "Uses Wires when initialized with marionette option" do
-            temp_driver = Selenium::WebDriver.for :firefox, {marionette: true}
-            expect(temp_driver.instance_variable_get('@bridge').instance_variable_get('@launcher')).to be_nil
-            temp_driver.quit
+            expect(driver2.capabilities.version).to_not be == default_version
+            driver2.quit
           end
         end
       end
 
-      compliant_on({:driver => :remote, :browser => :marionette}, {:driver => :marionette}) do
-
-        context "when designated firefox installation does not include Marionette" do
-          before(:each) do
-            @marionette_path = ENV['MARIONETTE_PATH']
-            ENV['MARIONETTE_PATH'] = nil
-            Firefox::Binary.instance_variable_set(:"@path", nil)
+      context "when designated firefox binary includes Marionette" do
+        before do
+          unless ENV['MARIONETTE_PATH']
+            pending "Set ENV['MARIONETTE_PATH'] to test Marionette enabled Firefox installations"
           end
-          after(:each) {ENV['MARIONETTE_PATH'] = @marionette_path}
-          let(:message) { /Firefox Version \d\d does not support W3CCapabilities/ }
+        end
 
-          it "Raises Wires Exception when initialized with :desired_capabilities" do
-            caps = Selenium::WebDriver::Remote::W3CCapabilities.firefox
-            opt = {:desired_capabilities => caps}
-            expect { Selenium::WebDriver.for :firefox, opt }.to raise_exception ArgumentError, message
+        compliant_on :browser => :marionette do
+          # This passes in isolation, but can not run in suite due to combination of
+          # https://bugzilla.mozilla.org/show_bug.cgi?id=1228107 & https://github.com/SeleniumHQ/selenium/issues/1150
+          not_compliant_on :driver => :remote do
+            it "Uses Wires when setting marionette option in capabilities" do
+              cap_opts = {:marionette => true}
+              cap_opts.merge!(:firefox_binary => ENV['MARIONETTE_PATH']) unless GlobalTestEnv.driver == :remote
+              caps = Selenium::WebDriver::Remote::Capabilities.firefox cap_opts
+              @opt.merge!(:desired_capabilities => caps)
+              expect {@driver = Selenium::WebDriver.for GlobalTestEnv.driver, @opt}.to_not raise_exception
+              @driver.quit
+            end
           end
+        end
 
-          it "Raises Wires Exception when initialized with marionette option" do
-            expect{Selenium::WebDriver.for :firefox, {marionette: true}}.to raise_exception ArgumentError, message
+        compliant_on :browser => :marionette do
+          # This passes in isolation, but can not run in suite due to combination of
+          # https://bugzilla.mozilla.org/show_bug.cgi?id=1228107 & https://github.com/SeleniumHQ/selenium/issues/1150
+          not_compliant_on :driver => :remote do
+            it "Uses Wires when setting marionette option in driver initialization" do
+              cap_opts = GlobalTestEnv.driver == :remote ? {} : {:firefox_binary => ENV['MARIONETTE_PATH']}
+              caps = Selenium::WebDriver::Remote::Capabilities.firefox cap_opts
+              @opt.merge!(:marionette => true, :desired_capabilities => caps)
+              @driver = Selenium::WebDriver.for GlobalTestEnv.driver, @opt
+
+              expect(@driver.capabilities[:takes_element_screenshot]).to_not be_nil
+              @driver.quit
+            end
+          end
+        end
+
+        # test with firefox due to https://bugzilla.mozilla.org/show_bug.cgi?id=1228121
+        compliant_on :browser => :firefox do
+          it "Does not use wires when marionette option is not set" do
+            @driver = Selenium::WebDriver.for GlobalTestEnv.driver, @opt
+
+            expect(@driver.capabilities[:takes_element_screenshot]).to be_nil
+            @driver.quit
+          end
+        end
+
+        compliant_on :browser => :marionette do
+          # https://bugzilla.mozilla.org/show_bug.cgi?id=1228107
+          not_compliant_on :browser => :marionette do
+            it_behaves_like "driver that can be started concurrently", :marionette
           end
         end
       end
-    end
+
+      compliant_on :browser => :firefox do
+        # These pass in isolation, but can not run in suite due to https://github.com/SeleniumHQ/selenium/issues/1150
+        not_compliant_on :driver => :remote do
+          context "when designated firefox binary does not include Marionette" do
+            let(:message) { /Marionette is not supported in Firefox Version \d\d/ }
+
+            before do
+              unless ENV['PRE_MARIONETTE_PATH']
+                pending "Set ENV['PRE_MARIONETTE_PATH'] to test features on firefox versions without marionette"
+              end
+            end
+
+            it "Raises Wires Exception when setting marionette option in capabilities" do
+              caps = Selenium::WebDriver::Remote::Capabilities.firefox(:marionette => true,
+                                                                       :firefox_binary => ENV['PRE_MARIONETTE_PATH'])
+              @opt.merge!(:desired_capabilities => caps)
+              expect { Selenium::WebDriver.for GlobalTestEnv.driver, @opt }.to raise_exception Error::WebDriverError, message
+            end
+
+            it "Raises Wires Exception when setting marionette option in driver initialization" do
+              caps = Selenium::WebDriver::Remote::Capabilities.firefox(:firefox_binary => ENV['PRE_MARIONETTE_PATH'])
+              @opt.merge!(:marionette => true, :desired_capabilities => caps)
+              expect{ Selenium::WebDriver.for GlobalTestEnv.driver, @opt}.to raise_exception Error::WebDriverError, message
+            end
+          end
+        end
+      end
+    end # Firefox
   end # WebDriver
 end # Selenium

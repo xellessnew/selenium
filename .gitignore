@@ -59,6 +59,8 @@ obj/
 *.suo
 *.sdf
 *.vs
+*.opendb
+*.aps
 Generated/
 ipch/
 /iedriver.log

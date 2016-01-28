@@ -30,7 +30,7 @@ namespace OpenQA.Selenium.Remote
         private RemoteWebDriver driver;
 
         /// <summary>
-        /// Initializes a new instance of the RemoteTimeouts class
+        /// Initializes a new instance of the <see cref="RemoteTimeouts"/> class
         /// </summary>
         /// <param name="driver">The driver that is currently in use</param>
         public RemoteTimeouts(RemoteWebDriver driver)
@@ -38,7 +38,6 @@ namespace OpenQA.Selenium.Remote
             this.driver = driver;
         }
 
-        #region ITimeouts Members
         /// <summary>
         /// Specifies the amount of time the driver should wait when searching for an
         /// element if it is not immediately present.
@@ -59,12 +58,6 @@ namespace OpenQA.Selenium.Remote
         /// </remarks>
         public ITimeouts ImplicitlyWait(TimeSpan timeToWait)
         {
-            double milliseconds = timeToWait.TotalMilliseconds;
-            if (timeToWait == TimeSpan.MinValue)
-            {
-                milliseconds = -1;
-            }
-
             this.ExecuteSetTimeout("implicit", timeToWait);
             return this;
         }
@@ -77,12 +70,6 @@ namespace OpenQA.Selenium.Remote
         /// <returns>A self reference</returns>
         public ITimeouts SetScriptTimeout(TimeSpan timeToWait)
         {
-            double milliseconds = timeToWait.TotalMilliseconds;
-            if (timeToWait == TimeSpan.MinValue)
-            {
-                milliseconds = -1;
-            }
-
             this.ExecuteSetTimeout("script", timeToWait);
             return this;
         }
@@ -98,7 +85,6 @@ namespace OpenQA.Selenium.Remote
             this.ExecuteSetTimeout("page load", timeToWait);
             return this;
         }
-        #endregion
 
         private void ExecuteSetTimeout(string timeoutType, TimeSpan timeToWait)
         {

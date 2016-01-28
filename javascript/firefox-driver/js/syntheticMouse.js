@@ -77,11 +77,108 @@ SyntheticMouse.newResponse = function(status, message) {
 };
 
 
+SyntheticMouse.prototype.isElementShownAndClickable = function(element) {
+  var error = this.isElementShown(element);
+  if (error) {
+    return error;
+  }
+
+  var error = this.isElementClickable(element);
+  if (error) {
+    return error;
+  }
+}
+
+
 SyntheticMouse.prototype.isElementShown = function(element) {
   if (!bot.dom.isShown(element, /*ignoreOpacity=*/true)) {
     return SyntheticMouse.newResponse(bot.ErrorCode.ELEMENT_NOT_VISIBLE,
         'Element is not currently visible and so may not be interacted with');
   }
+};
+
+
+SyntheticMouse.prototype.isElementClickable = function(element) {
+  // get the outermost ancestor of the element. This will be either the document
+  // or a shadow root.
+  var owner = element;
+  while (owner.parentNode) {
+    owner = owner.parentNode;
+  }
+
+  var tagName = element.tagName.toLowerCase();
+
+  // TODO: https://gist.github.com/p0deje/c549e93fa19bf7aaee49
+  if ('select' == tagName) {
+    return;
+  }
+
+  // Check to see if this is an option element. If it is, and the parent isn't a multiple
+  // select, then check that select is clickable.
+  if ('option' == tagName) {
+    var parent = element;
+    while (parent.parentNode != null && parent.tagName.toLowerCase() != 'select') {
+      parent = parent.parentNode;
+    }
+
+    if (parent && parent.tagName.toLowerCase() == 'select') {
+      return this.isElementClickable(parent);
+    }
+  }
+
+  // Check to see if this is an area element. If it is, find the image element that
+  // uses area's map, then check that image is clickable.
+  if ('area' == tagName) {
+    var map = element.parentElement;
+    if (map.tagName.toLowerCase() != 'map') {
+      throw new Error('the area is not within a map');
+    }
+    var mapName = map.getAttribute('name');
+    if (mapName == null) {
+      throw new Error ("area's parent map must have a name");
+    }
+    mapName = '#' + mapName.toLowerCase();
+    var images = owner.getElementsByTagName('img');
+    for (var i = 0; i < images.length; i++) {
+      var image = images[i];
+      if (image.useMap.toLowerCase() == mapName) {
+        return this.isElementClickable(image);
+      }
+    }
+  }
+
+  var rect = bot.dom.getClientRect(element);
+  var coords = {
+    x: this.lastMousePosition.x + rect.left,
+    y: this.lastMousePosition.y + rect.top
+  }
+
+  var elementAtPoint = owner.elementFromPoint(coords.x, coords.y);
+
+  // element may be huge, so coordinates are outside the viewport
+  if (elementAtPoint === null) {
+    return;
+  }
+
+  if (element == elementAtPoint) {
+    return;
+  }
+
+  // allow clicks to element descendants
+  var parentElemIter = elementAtPoint.parentNode;
+  while (parentElemIter) {
+    if (parentElemIter == element) {
+      return;
+    }
+    parentElemIter = parentElemIter.parentNode;
+  }
+
+  var elementAtPointHTML =
+    elementAtPoint.outerHTML.replace(elementAtPoint.innerHTML, '');
+
+  return SyntheticMouse.newResponse(bot.ErrorCode.UNKNOWN_ERROR,
+      'Element is not clickable at point (' + coords.x + ', ' + coords.y + '). ' +
+      'Other element would receive the click: ' + elementAtPointHTML);
 };
 
 
@@ -176,7 +273,7 @@ SyntheticMouse.prototype.click = function(target) {
   // No need to unwrap the target. All information is provided by the wrapped
   // version, and unwrapping does not work for all firefox versions.
   var element = target ? target : this.lastElement;
-  var error = this.isElementShown(element);
+  var error = this.isElementShownAndClickable(element);
   if (error) {
     return error;
   }
@@ -191,11 +288,12 @@ SyntheticMouse.prototype.click = function(target) {
     }
 
     if (parent && parent.tagName.toLowerCase() == 'select' && !parent.multiple) {
+      goog.log.info(SyntheticMouse.LOG_, 'About to do a bot.action.click on ' + element);
       bot.action.click(parent, undefined /* coords */);
     }
 
     goog.log.info(SyntheticMouse.LOG_, 'About to do a bot.action.click on ' + element);
-    bot.action.click(element, this.lastMousePosition, new bot.Mouse(null, this.modifierKeys));
+    bot.action.click(element, undefined, new bot.Mouse(null, this.modifierKeys));
 
   } else {
     goog.log.info(SyntheticMouse.LOG_, 'About to do a bot.action.click on ' + element);
@@ -218,7 +316,7 @@ SyntheticMouse.prototype.contextClick = function(target) {
   // No need to unwrap the target. All information is provided by the wrapped
   // version, and unwrapping does not work for all firefox versions.
   var element = target ? target : this.lastElement;
-  var error = this.isElementShown(element);
+  var error = this.isElementShownAndClickable(element);
   if (error) {
     return error;
   }
@@ -237,7 +335,7 @@ SyntheticMouse.prototype.doubleClick = function(target) {
       'SyntheticMouse.doubleClick ' + target);
 
   var element = target ? target : this.lastElement;
-  var error = this.isElementShown(element);
+  var error = this.isElementShownAndClickable(element);
   if (error) {
     return error;
   }

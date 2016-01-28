@@ -344,6 +344,7 @@ function copyResources(outputDirPath, resources, exclusions) {
 
 function generateDocs(outputDir, callback) {
   var libDir = path.join(outputDir, 'lib');
+
   var excludedDirs = [
     path.join(outputDir, 'example'),
     path.join(libDir, 'test'),
@@ -352,6 +353,7 @@ function generateDocs(outputDir, callback) {
   ];
 
   var excludedFiles = [
+    path.join(libDir, '_base.js'),
     path.join(libDir, 'safari/client.js'),
     path.join(libDir, 'webdriver/builder.js'),
     path.join(libDir, 'webdriver/firefoxdomexecutor.js'),
@@ -383,19 +385,22 @@ function generateDocs(outputDir, callback) {
     return files;
   };
 
-  var sourceFiles = getFiles(libDir);
+  var sourceFiles = getFiles(libDir).filter(function(file) {
+    return path.dirname(file) !== libDir;
+  });
   var moduleFiles = getFiles(outputDir).filter(function(file) {
     return sourceFiles.indexOf(file) == -1;
   });
 
+  var output = outputDir + '-docs';
   var config = {
-    'output': path.join(outputDir, 'docs'),
+    'output': output,
     'closureLibraryDir': path.join(outputDir, 'lib', 'goog'),
     'customPages': [
       {'name': 'Changes', 'path': path.join(outputDir, 'CHANGES.md')}
     ],
     'readme': path.join(outputDir, 'README.md'),
-    'language': 'ES5',
+    'language': 'ES6_STRICT',
     'sources': sourceFiles,
     'modules': moduleFiles,
     'excludes': [
@@ -405,12 +410,12 @@ function generateDocs(outputDir, callback) {
     'typeFilters': ['goog']
   };
 
-  var configFile = outputDir + '-docs.json';
+  var configFile = output + '.json';
   fs.writeFileSync(configFile, JSON.stringify(config), 'utf8');
 
   var command = [
       'java -jar', path.join(
-          __dirname, '../../third_party/java/dossier/dossier-0.7.1.jar'),
+          __dirname, '../../third_party/java/dossier/dossier-0.7.2.jar'),
       '-c', configFile
   ].join(' ');
   child_process.exec(command, callback);

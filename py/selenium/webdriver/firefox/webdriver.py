@@ -24,12 +24,14 @@ except ImportError:
 import shutil
 import socket
 import sys
+
 from .firefox_binary import FirefoxBinary
-from .service import Service
+from .remote_connection import FirefoxRemoteConnection
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.firefox.extension_connection import ExtensionConnection
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
+from .service import Service
 
 
 class WebDriver(RemoteWebDriver):
@@ -38,8 +40,7 @@ class WebDriver(RemoteWebDriver):
     NATIVE_EVENTS_ALLOWED = sys.platform != "darwin"
 
     def __init__(self, firefox_profile=None, firefox_binary=None, timeout=30,
-                 capabilities=None, proxy=None, executable_path='wires'):
-
+                 capabilities=None, proxy=None, executable_path="wires"):
         self.binary = firefox_binary
         self.profile = firefox_profile
 
@@ -52,18 +53,19 @@ class WebDriver(RemoteWebDriver):
         if capabilities is None:
             capabilities = DesiredCapabilities.FIREFOX
 
-        if "marionette" in capabilities and capabilities['marionette'] is True:
-            # Let's use Marionette! WOOOOHOOOOO!
-            if "binary" in capabilities:
-                self.binary = capabilities["binary"]
+        # marionette
+        if capabilities.get("marionette"):
+            self.binary = capabilities.get("binary")
             self.service = Service(executable_path, firefox_binary=self.binary)
             self.service.start()
 
-            RemoteWebDriver.__init__(self,
-                command_executor=self.service.service_url,
+            executor = FirefoxRemoteConnection(
+                remote_server_addr=self.service.service_url)
+            RemoteWebDriver.__init__(
+                self,
+                command_executor=executor,
                 desired_capabilities=capabilities,
                 keep_alive=True)
-
         else:
             # Oh well... sometimes the old way is the best way.
             if self.binary is None:
@@ -72,9 +74,10 @@ class WebDriver(RemoteWebDriver):
             if proxy is not None:
                 proxy.add_to_capabilities(capabilities)
 
+            executor = ExtensionConnection("127.0.0.1", self.profile,
+                                           self.binary, timeout)
             RemoteWebDriver.__init__(self,
-            command_executor=ExtensionConnection("127.0.0.1", self.profile,
-            self.binary, timeout),
+                command_executor=executor,
             desired_capabilities=capabilities,
             keep_alive=True)
 
@@ -103,3 +106,6 @@ class WebDriver(RemoteWebDriver):
     @property
     def firefox_profile(self):
         return self.profile
+
+    def set_context(self, context):
+        self.execute("SET_CONTEXT", {"context": context})

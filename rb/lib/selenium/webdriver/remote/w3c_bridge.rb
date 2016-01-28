@@ -17,6 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+require 'json'
+
 module Selenium
   module WebDriver
     module Remote
@@ -60,22 +62,27 @@ module Selenium
         #
 
         def initialize(opts = {})
+          if opts.fetch(:desired_capabilities, {})[:browser_name] == 'MicrosoftEdge'
+            require_relative '../edge/legacy_support'
+            extend Edge::LegacySupport
+          end
+
           opts = opts.dup
 
           http_client          = opts.delete(:http_client) { Http::Default.new }
           desired_capabilities = opts.delete(:desired_capabilities) { W3CCapabilities.firefox }
           url                  = opts.delete(:url) { "http://#{Platform.localhost}:4444/wd/hub" }
 
-          unless opts.empty?
-            raise ArgumentError, "unknown option#{'s' if opts.size != 1}: #{opts.inspect}"
+          desired_capabilities = W3CCapabilities.send(desired_capabilities) if desired_capabilities.is_a? Symbol
+
+          desired_capabilities[:marionette] = opts.delete(:marionette) unless opts[:marionette].nil?
+
+          if desired_capabilities[:marionette] && Firefox::Binary.version < 45
+              raise Error::WebDriverError, "Marionette is not supported in Firefox Version #{Firefox::Binary.version}"
           end
 
-          if desired_capabilities.kind_of?(Symbol)
-            unless W3CCapabilities.respond_to?(desired_capabilities)
-              raise Error::WebDriverError, "invalid desired capability: #{desired_capabilities.inspect}"
-            end
-
-            desired_capabilities = W3CCapabilities.send(desired_capabilities)
+          unless opts.empty?
+            raise ArgumentError, "unknown option#{'s' if opts.size != 1}: #{opts.inspect}"
           end
 
           uri = url.kind_of?(URI) ? url : URI.parse(url)
@@ -85,7 +92,6 @@ module Selenium
 
           @http          = http_client
           @capabilities  = create_session(desired_capabilities)
-
           @file_detector = nil
         end
 
@@ -104,9 +110,8 @@ module Selenium
             DriverExtensions::HasSessionId,
             DriverExtensions::Rotatable,
             DriverExtensions::HasTouchScreen,
-            DriverExtensions::HasLocation,
-            DriverExtensions::HasNetworkConnection,
-            DriverExtensions::HasRemoteStatus
+            DriverExtensions::HasRemoteStatus,
+            DriverExtensions::HasWebStorage
           ]
         end
 
@@ -126,15 +131,13 @@ module Selenium
         end
 
         def status
+          jwp = Selenium::WebDriver::Remote::Bridge::COMMANDS[:status]
+          self.class.command(:status, jwp.first, jwp.last)
           execute :status
         end
 
         def get(url)
           execute :get, {}, :url => url
-        end
-
-        def getCapabilities
-          W3CCapabilities.json_create execute(:getCapabilities)
         end
 
         def setImplicitWaitTimeout(milliseconds)
@@ -152,10 +155,6 @@ module Selenium
         #
         # alerts
         #
-
-        def getAlert
-          execute :getAlert
-        end
 
         def acceptAlert
           execute :acceptAlert
@@ -194,15 +193,9 @@ module Selenium
         end
 
         def getPageSource
-          execute :getPageSource
-        end
-
-        def getVisible
-          execute :getVisible
-        end
-
-        def setVisible(bool)
-          execute :setVisible, {}, bool
+          executeScript("var source = document.documentElement.outerHTML;" +
+                            "if (!source) { source = new XMLSerializer().serializeToString(document); }" +
+                            "return source;")
         end
 
         def switchToWindow(name)
@@ -210,16 +203,8 @@ module Selenium
         end
 
         def switchToFrame(id)
-          locator  = case id
-                     when String
-                       find_element_by('id', id)
-                     when Hash
-                       find_element_by(id.keys.first.to_s, id.values.first)
-                     else
-                       id
-                     end
-
-          execute :switchToFrame, {}, :id => locator
+          id = find_element_by('id', id) if id.is_a? String
+          execute :switchToFrame, {}, :id => id
         end
 
         def switchToParentFrame
@@ -258,31 +243,40 @@ module Selenium
           execute :getWindowHandle
         end
 
-        # TODO - These Commands might require checking for being
-        # current window before performing
         def setWindowSize(width, height, handle = :current)
+          unless handle == :current
+            raise Error::WebDriverError, 'Switch to desired window before changing its size'
+          end
           execute :setWindowSize, {}, {:width  => width,
                                    :height => height}
         end
 
         def maximizeWindow(handle = :current)
+          unless handle == :current
+            raise Error::WebDriverError, 'Switch to desired window before changing its size'
+          end
           execute :maximizeWindow
         end
 
+        def fullscreenWindow
+          execute :fullscreenWindow
+        end
+
         def getWindowSize(handle = :current)
+          unless handle == :current
+            raise Error::WebDriverError, 'Switch to desired window before getting its size'
+          end
           data = execute :getWindowSize
 
           Dimension.new data['width'], data['height']
         end
 
-        def setWindowPosition(x, y, handle = :current)
-          execute :setWindowPosition, :x => x, :y => y
+        def setWindowPosition(_x, _y, _handle = nil)
+          raise Error::WebDriverError::UnsupportedOperationError, 'The W3C standard does not currently support setting the Window Position'
         end
 
-        def getWindowPosition(handle = :current)
-          data = execute :getWindowPosition
-
-          Point.new data['x'], data['y']
+        def getWindowPosition(_handle = nil)
+          raise Error::WebDriverError::UnsupportedOperationError, 'The W3C standard does not currently support getting the Window Position'
         end
 
         def getScreenshot
@@ -294,69 +288,67 @@ module Selenium
         #
 
         def getLocalStorageItem(key)
-          execute :getLocalStorageItem, :key => key
+          executeScript("return localStorage.getItem('#{key}')")
         end
 
         def removeLocalStorageItem(key)
-          execute :removeLocalStorageItem, :key => key
+          executeScript("localStorage.removeItem('#{key}')")
         end
 
         def getLocalStorageKeys
-          execute :getLocalStorageKeys
+          executeScript("return Object.keys(localStorage)")
         end
 
         def setLocalStorageItem(key, value)
-          execute :setLocalStorageItem, {}, :key => key, :value => value
+          executeScript("localStorage.setItem('#{key}', '#{value}')")
         end
 
         def clearLocalStorage
-          execute :clearLocalStorage
+          executeScript("localStorage.clear()")
         end
 
         def getLocalStorageSize
-          execute :getLocalStorageSize
+          executeScript("return localStorage.length")
         end
 
         def getSessionStorageItem(key)
-          execute :getSessionStorageItem, :key => key
+          executeScript("return sessionStorage.getItem('#{key}')")
         end
 
         def removeSessionStorageItem(key)
-          execute :removeSessionStorageItem, :key => key
+          executeScript("sessionStorage.removeItem('#{key}')")
         end
 
         def getSessionStorageKeys
-          execute :getSessionStorageKeys
+          executeScript("return Object.keys(sessionStorage)")
         end
 
         def setSessionStorageItem(key, value)
-          execute :setSessionStorageItem, {}, :key => key, :value => value
+          executeScript("sessionStorage.setItem('#{key}', '#{value}')")
         end
 
         def clearSessionStorage
-          execute :clearSessionStorage
+          executeScript("sessionStorage.clear()")
         end
 
         def getSessionStorageSize
-          execute :getSessionStorageSize
+          executeScript("return sessionStorage.length")
         end
 
         def getLocation
-          obj = execute(:getLocation) || {} # android returns null
-          Location.new obj['latitude'], obj['longitude'], obj['altitude']
+          raise Error::WebDriverError::UnsupportedOperationError, 'The W3C standard does not currently support getting location'
         end
 
-        def setLocation(lat, lon, alt)
-          loc = {:latitude => lat, :longitude => lon, :altitude => alt}
-          execute :setLocation, {}, :location => loc
+        def setLocation(_lat, _lon, _alt)
+          raise Error::WebDriverError::UnsupportedOperationError, 'The W3C standard does not currently support setting location'
         end
 
         def getNetworkConnection
-          execute :getNetworkConnection
+          raise Error::WebDriverError::UnsupportedOperationError, 'The W3C standard does not currently support getting network connection'
         end
 
-        def setNetworkConnection(type)
-          execute :setNetworkConnection, {}, :parameters => {:type => type}
+        def setNetworkConnection(_type)
+          raise Error::WebDriverError::UnsupportedOperationError, 'The W3C standard does not currently support setting network connection'
         end
 
         #
@@ -378,7 +370,7 @@ module Selenium
         #
 
         def addCookie(cookie)
-          execute :addCookie, {}, cookie
+          execute :addCookie, {}, :cookie => cookie
         end
 
         def deleteCookie(name)
@@ -440,22 +432,14 @@ module Selenium
           sendKeysToElement(getActiveElement, keys)
         end
 
+        # TODO - Implement file verification
         def sendKeysToElement(element, keys)
           execute :elementSendKeys, {:id => element}, {:value => keys.join('').split(//)}
-        end
-
-        def upload(local_file)
-          unless File.file?(local_file)
-            raise Error::WebDriverError, "you may only upload files: #{local_file.inspect}"
-          end
-
-          execute :uploadFile, {}, :file => Zipper.zip_file(local_file)
         end
 
         def clearElement(element)
           execute :elementClear, :id => element
         end
-
 
         def submitElement(element)
           executeScript("var e = arguments[0].ownerDocument.createEvent('Event');" +
@@ -542,19 +526,18 @@ module Selenium
         end
 
         def getElementLocation(element)
-          data = execute :getElementLocation, :id => element
+          data = execute :getElementRect, :id => element
 
           Point.new data['x'], data['y']
         end
 
         def getElementLocationOnceScrolledIntoView(element)
-          data = execute :getElementLocationOnceScrolledIntoView, :id => element
-
-          Point.new data['x'], data['y']
+          sendKeysToElement(element, [''])
+          getElementLocation(element)
         end
 
         def getElementSize(element)
-          data = execute :getElementSize, :id => element
+          data = execute :getElementRect, :id => element
 
           Dimension.new data['width'], data['height']
         end
@@ -568,14 +551,13 @@ module Selenium
         end
 
         def isElementDisplayed(element)
+          jwp = Selenium::WebDriver::Remote::Bridge::COMMANDS[:isElementDisplayed]
+          self.class.command(:isElementDisplayed, jwp.first, jwp.last)
           execute :isElementDisplayed, :id => element
         end
+
         def getElementValueOfCssProperty(element, prop)
           execute :getElementCssValue, :id => element, :property_name => prop
-        end
-
-        def elementEquals(element, other)
-          element.ref == other.ref
         end
 
         #

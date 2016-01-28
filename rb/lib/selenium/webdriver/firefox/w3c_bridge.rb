@@ -25,31 +25,14 @@ module Selenium
       class W3CBridge < Remote::W3CBridge
 
         def initialize(opts = {})
-          http_client = opts.delete(:http_client)
+          caps = opts[:desired_capabilities] ||= Remote::W3CCapabilities.firefox
+          Binary.path = caps[:firefox_binary] if caps[:firefox_binary]
 
-          if opts.has_key?(:url)
-            url = opts.delete(:url)
-          else
-            @service = Service.default_service(*extract_service_args(opts))
+          @service = Service.default_service(*extract_service_args(opts))
+          @service.start
+          opts[:url] = @service.uri
 
-            if @service.instance_variable_get("@host") == "127.0.0.1"
-              @service.instance_variable_set("@host", 'localhost')
-            end
-
-            @service.start
-
-            url = @service.uri
-          end
-
-          caps = create_capabilities(opts)
-
-          remote_opts = {
-            :url                  => url,
-            :desired_capabilities => caps
-          }
-
-          remote_opts.merge!(:http_client => http_client) if http_client
-          super(remote_opts)
+          super
         end
 
         def browser
@@ -59,7 +42,8 @@ module Selenium
         def driver_extensions
           [
             DriverExtensions::TakesScreenshot,
-            DriverExtensions::HasInputDevices
+            DriverExtensions::HasInputDevices,
+            DriverExtensions::HasWebStorage
           ]
         end
 
@@ -71,24 +55,9 @@ module Selenium
 
         private
 
-        def create_capabilities(opts)
-          caps = opts.delete(:desired_capabilities) { Remote::W3CCapabilities.firefox }
-
-          unless opts.empty?
-            raise ArgumentError, "unknown option#{'s' if opts.size != 1}: #{opts.inspect}"
-          end
-
-          caps
-        end
-
         def extract_service_args(opts)
-          args = []
-
-          if opts.has_key?(:service_log_path)
-            args << "--log-path=#{opts.delete(:service_log_path)}"
-          end
-
-          args
+          service_log_path = opts.delete(:service_log_path)
+          service_log_path ? ["--log-path=#{service_log_path}"] : []
         end
 
       end # W3CBridge

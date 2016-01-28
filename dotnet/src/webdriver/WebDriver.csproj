@@ -42,7 +42,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\..\build\cli\Debug\WebDriver.xml</DocumentationFile>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>WebDriver.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -52,7 +52,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\..\build\cli\Release\WebDriver.xml</DocumentationFile>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>WebDriver.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -81,6 +81,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="By.cs" />
+    <Compile Include="Chrome\ChromeMobileEmulationDeviceSettings.cs" />
+    <Compile Include="Chrome\ChromePerformanceLoggingPreferences.cs" />
     <Compile Include="DefaultFileDetector.cs" />
     <Compile Include="Edge\EdgeDriver.cs" />
     <Compile Include="Edge\EdgeDriverService.cs" />
@@ -90,9 +92,19 @@
     <Compile Include="Firefox\FirefoxDriverCommandExecutor.cs" />
     <Compile Include="Firefox\FirefoxDriverServer.cs" />
     <Compile Include="Firefox\FirefoxOptions.cs" />
+    <Compile Include="Html5\AppCacheStatus.cs" />
+    <Compile Include="Html5\IApplicationCache.cs" />
+    <Compile Include="Html5\IHasApplicationCache.cs" />
+    <Compile Include="Html5\IHasWebStorage.cs" />
+    <Compile Include="Html5\ILocalStorage.cs" />
+    <Compile Include="Html5\ISessionStorage.cs" />
+    <Compile Include="Html5\IWebStorage.cs" />
+    <Compile Include="Html5\Location.cs" />
     <Compile Include="IAllowsFileDetection.cs" />
     <Compile Include="IE\InternetExplorerDriverEngine.cs" />
     <Compile Include="IFileDetector.cs" />
+    <Compile Include="Html5\IHasLocationContext.cs" />
+    <Compile Include="Remote\IHasSessionId.cs" />
     <Compile Include="IHasTouchScreen.cs" />
     <Compile Include="Interactions\ScreenMoveAction.cs" />
     <Compile Include="Interactions\ScreenReleaseAction.cs" />
@@ -108,6 +120,7 @@
       <ExcludeFromStyleCop>True</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="ITouchScreen.cs" />
+    <Compile Include="Html5\ILocationContext.cs" />
     <Compile Include="Opera\OperaDriver.cs" />
     <Compile Include="Opera\OperaDriverService.cs" />
     <Compile Include="Opera\OperaOptions.cs" />
@@ -123,7 +136,12 @@
     <Compile Include="Remote\ICommandServer.cs" />
     <Compile Include="Remote\JsonConverters\ResponseValueJsonConverter.cs" />
     <Compile Include="Remote\LocalFileDetector.cs" />
+    <Compile Include="Remote\RemoteApplicationCache.cs" />
+    <Compile Include="Remote\RemoteLocalStorage.cs" />
+    <Compile Include="Remote\RemoteLocationContext.cs" />
+    <Compile Include="Remote\RemoteSessionStorage.cs" />
     <Compile Include="Remote\RemoteTouchScreen.cs" />
+    <Compile Include="Remote\RemoteWebStorage.cs" />
     <Compile Include="Safari\SafariOptions.cs" />
     <Compile Include="WebDriverTimeoutException.cs" />
     <Compile Include="IE\InternetExplorerDriverLogLevel.cs" />
@@ -164,7 +182,6 @@
     <Compile Include="IHasInputDevices.cs" />
     <Compile Include="IJavascriptExecutor.cs" />
     <Compile Include="IKeyboard.cs" />
-    <Compile Include="IllegalLocatorException.cs" />
     <Compile Include="ILocatable.cs" />
     <Compile Include="IMouse.cs" />
     <Compile Include="INavigation.cs" />
@@ -306,7 +323,14 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="WebDriver.ruleset" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\..\..\third_party\dotnet\stylecop\StyleCop.Analyzers.1.0.0-rc3\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
+    <Analyzer Include="..\..\..\third_party\dotnet\stylecop\StyleCop.Analyzers.1.0.0-rc3\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="..\..\..\third_party\dotnet\stylecop\StyleCop.Analyzers.1.0.0-rc3\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

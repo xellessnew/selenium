@@ -39,7 +39,7 @@ namespace OpenQA.Selenium.Remote
         private CommandInfoRepository commandInfoRepository = new WebDriverWireProtocolCommandInfoRepository();
 
         /// <summary>
-        /// Initializes a new instance of the HttpCommandExecutor class
+        /// Initializes a new instance of the <see cref="HttpCommandExecutor"/> class
         /// </summary>
         /// <param name="addressOfRemoteServer">Address of the WebDriver Server</param>
         /// <param name="timeout">The timeout within which the server must respond.</param>
@@ -49,15 +49,7 @@ namespace OpenQA.Selenium.Remote
         }
 
         /// <summary>
-        /// Gets the repository of objects containin information about commands.
-        /// </summary>
-        public CommandInfoRepository CommandInfoRepository
-        {
-            get { return this.commandInfoRepository; }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the HttpCommandExecutor class
+        /// Initializes a new instance of the <see cref="HttpCommandExecutor"/> class
         /// </summary>
         /// <param name="addressOfRemoteServer">Address of the WebDriver Server</param>
         /// <param name="timeout">The timeout within which the server must respond.</param>
@@ -91,7 +83,14 @@ namespace OpenQA.Selenium.Remote
             }
         }
 
-        #region ICommandExecutor Members
+        /// <summary>
+        /// Gets the repository of objects containin information about commands.
+        /// </summary>
+        public CommandInfoRepository CommandInfoRepository
+        {
+            get { return this.commandInfoRepository; }
+        }
+
         /// <summary>
         /// Executes a command
         /// </summary>
@@ -121,28 +120,17 @@ namespace OpenQA.Selenium.Remote
             }
 
             Response toReturn = this.CreateResponse(request);
-            if (commandToExecute.Name == DriverCommand.NewSession)
+            if (commandToExecute.Name == DriverCommand.NewSession && toReturn.IsSpecificationCompliant)
             {
                 // If we are creating a new session, sniff the response to determine
                 // what protocol level we are using. If the response contains a
-                // capability called "specificationLevel" that's an integer value
-                // and that's greater than 0, that means we're using the W3C protocol
-                // dialect.
+                // field called "status", it's not a spec-compliant response.
+                // Each response is polled for this, and sets a property describing
+                // whether it's using the W3C protocol dialect.
                 // TODO(jimevans): Reverse this test to make it the default path when
                 // most remote ends speak W3C, then remove it entirely when legacy
                 // protocol is phased out.
-                Dictionary<string, object> capabilities = toReturn.Value as Dictionary<string, object>;
-                if (capabilities != null)
-                {
-                    if (capabilities.ContainsKey("specificationLevel"))
-                    {
-                        int returnedSpecLevel = Convert.ToInt32(capabilities["specificationLevel"]);
-                        if (returnedSpecLevel > 0)
-                        {
-                            this.commandInfoRepository = new W3CWireProtocolCommandInfoRepository();
-                        }
-                    }
-                }
+                this.commandInfoRepository = new W3CWireProtocolCommandInfoRepository();
             }
 
             return toReturn;
@@ -198,7 +186,7 @@ namespace OpenQA.Selenium.Remote
                 string responseString = GetTextOfWebResponse(webResponse);
                 if (webResponse.ContentType != null && webResponse.ContentType.StartsWith(JsonMimeType, StringComparison.OrdinalIgnoreCase))
                 {
-                    commandResponse = Response.FromJson(responseString, this.commandInfoRepository.SpecificationLevel);
+                    commandResponse = Response.FromJson(responseString);
                 }
                 else
                 {
@@ -238,7 +226,7 @@ namespace OpenQA.Selenium.Remote
                 if (commandResponse.Value is string)
                 {
                     // First, collapse all \r\n pairs to \n, then replace all \n with
-                    // System.Environment.NewLine. This ensures the consistency of 
+                    // System.Environment.NewLine. This ensures the consistency of
                     // the values.
                     commandResponse.Value = ((string)commandResponse.Value).Replace("\r\n", "\n").Replace("\n", System.Environment.NewLine);
                 }
@@ -248,7 +236,5 @@ namespace OpenQA.Selenium.Remote
 
             return commandResponse;
         }
-
-        #endregion
     }
 }

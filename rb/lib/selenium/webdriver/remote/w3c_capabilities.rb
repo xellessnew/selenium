@@ -49,6 +49,7 @@ module Selenium
         end
 
         alias_method :version, :browser_version
+        alias_method :platform, :platform_name
 
         #
         # Convenience methods for the common choices.
@@ -64,19 +65,19 @@ module Selenium
           end
 
           def firefox(opts = {})
+            opts[:browser_version] = opts.delete :version
+            opts[:platform_name] = opts.delete :platform
+
             new({
-              :browser_name => "firefox"
+              :browser_name => "firefox",
+              :marionette => true
                 }.merge(opts))
           end
 
           alias_method :ff, :firefox
 
           def w3c?(opts = {})
-            return false unless opts[:desired_capabilities].is_a?(W3CCapabilities) || opts.delete(:marionette)
-            Firefox::Binary.path = ENV['MARIONETTE_PATH'] if ENV['MARIONETTE_PATH']
-            firefox_version = Firefox::Binary.version
-            raise ArgumentError, "Firefox Version #{firefox_version} does not support W3CCapabilities" if firefox_version < 43
-            true
+            opts[:desired_capabilities].is_a?(W3CCapabilities) || opts[:marionette]
           end
 
           #
@@ -86,20 +87,38 @@ module Selenium
           def json_create(data)
             data = data.dup
 
+            # Convert due to Remote Driver implementation
+            data["browserVersion"] = data.delete("version") if data["version"]
+            data["platformName"] = data.delete("platform") if data["platform"]
+
             caps = new
-            caps.browser_name = data.delete("browserName")
-            caps.browser_version = data.delete("browserVersion")
-            caps.platform_name = data.delete("platformName").downcase.to_sym if data.has_key?('platform')
-            caps.platform_version = data.delete("platformVersion")
-            caps.accept_ssl_certs = data.delete("acceptSslCerts")
-            caps.takes_screenshot = data.delete("takesScreenshot  ")
-            caps.takes_element_screenshot = data.delete("takesElementScreenshot")
-            caps.page_load_strategy = data.delete("pageLoadStrategy")
-            caps.proxy = Proxy.json_create(data['proxy']) if data.has_key?('proxy')
+            caps.browser_name = data.delete("browserName") if data["browserName"]
+            caps.browser_version = data.delete("browserVersion") if data["browserVersion"]
+            caps.platform_name = data.delete("platformName") if data["platformName"]
+            caps.platform_version = data.delete("platformVersion") if data["platformVersion"]
+            caps.accept_ssl_certs = data.delete("acceptSslCerts") if data["acceptSslCerts"]
+            caps.takes_screenshot = data.delete("takesScreenshot") if data["takesScreenshot"]
+            caps.takes_element_screenshot = data.delete("takesElementScreenshot") if data["takesElementScreenshot"]
+            caps.page_load_strategy = data.delete("pageLoadStrategy") if data["pageloadStrategy"]
+            caps.proxy = Proxy.json_create(data['proxy']) if data['proxy']
+
+            # Remote Server Specific
+            caps[:remote_session_id] = data.delete('webdriver.remote.sessionid')
+
+            # Obsolete capabilities returned by Remote Server
+            data.delete("javascriptEnabled")
+            data.delete('cssSelectorsEnabled')
+
+            # Marionette Specific
+            caps[:specification_level] = data.delete("specificaionLevel")
+            caps[:xul_app_id] = data.delete("XULappId")
+            caps[:raise_accessibility_exceptions] = data.delete('raisesAccessibilityExceptions')
+            caps[:rotatable] = data.delete('rotatable')
+            caps[:app_build_id] = data.delete('appBuildId')
+            caps[:device] = data.delete('device')
 
             # any remaining pairs will be added as is, with no conversion
             caps.merge!(data)
-
             caps
           end
         end

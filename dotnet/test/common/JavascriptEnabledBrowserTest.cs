@@ -233,13 +233,18 @@ namespace OpenQA.Selenium
 
         [Test]
         [Category("Javascript")]
-        [NeedsFreshDriver(AfterTest = true)]
+        [NeedsFreshDriver(IsCreatedAfterTest = true)]
         [IgnoreBrowser(Browser.Safari, "Safari: issue 3693")]
         [IgnoreBrowser(Browser.Opera)]
         [IgnoreBrowser(Browser.IPhone)]
         [IgnoreBrowser(Browser.WindowsPhone, "Windows Phone driver does not support multiple windows")]
         public void ShouldBeAbleToClickALinkThatClosesAWindow()
         {
+            if (TestUtilities.IsMarionette(driver))
+            {
+                Assert.Ignore("Marionette hangs the browser in this case");
+            }
+
             driver.Url = javascriptPage;
 
             String handle = driver.CurrentWindowHandle;

@@ -106,7 +106,8 @@ module Selenium
             DriverExtensions::HasTouchScreen,
             DriverExtensions::HasLocation,
             DriverExtensions::HasNetworkConnection,
-            DriverExtensions::HasRemoteStatus
+            DriverExtensions::HasRemoteStatus,
+            DriverExtensions::HasWebStorage
           ]
         end
 
@@ -153,28 +154,20 @@ module Selenium
         # alerts
         #
 
-        def getAlert
-          execute :getAlert
-        end
-
         def acceptAlert
-          command = :acceptAlert
-          execute command
+          execute :acceptAlert
         end
 
         def dismissAlert
-          command = :dismissAlert
-          execute command
+          execute :dismissAlert
         end
 
         def setAlertValue(keys)
-          command = capabilities.browser_name == 'MicrosoftEdge' ? :setAlertValueW3C : :setAlertValue
-          execute command, {}, :text => keys.to_s
+          execute :setAlertValue, {}, :text => keys.to_s
         end
 
         def getAlertText
-          command = :getAlertText
-          execute command
+          execute :getAlertText
         end
 
         #
@@ -201,20 +194,8 @@ module Selenium
           execute :getPageSource
         end
 
-        def getVisible
-          execute :getVisible
-        end
-
-        def setVisible(bool)
-          execute :setVisible, {}, bool
-        end
-
         def switchToWindow(name)
-          if capabilities.browser_name == 'MicrosoftEdge'
-            execute :switchToWindow, {}, :handle => name
-          else
-            execute :switchToWindow, {}, :name => name
-          end
+          execute :switchToWindow, {}, :name => name
         end
 
         def switchToFrame(id)
@@ -458,7 +439,6 @@ module Selenium
           execute :clearElement, :id => element
         end
 
-
         def submitElement(element)
           execute :submitElement, :id => element
         end
@@ -534,7 +514,11 @@ module Selenium
           data = execute :getLog, {}, :type => type.to_s
 
           Array(data).map do |l|
-            LogEntry.new l.fetch('level'), l.fetch('timestamp'), l.fetch('message')
+            begin
+              LogEntry.new l.fetch('level', 'UNKNOWN'), l.fetch('timestamp'), l.fetch('message')
+            rescue KeyError
+              next
+            end
           end
         end
 
@@ -587,12 +571,9 @@ module Selenium
         def isElementDisplayed(element)
           execute :isElementDisplayed, :id => element
         end
+
         def getElementValueOfCssProperty(element, prop)
           execute :getElementValueOfCssProperty, :id => element, :property_name => prop
-        end
-
-        def elementEquals(element, other)
-          element.ref == other.ref
         end
 
         #
@@ -627,7 +608,7 @@ module Selenium
         private
 
         def assert_javascript_enabled
-          return if capabilities.browser_name == 'MicrosoftEdge' || capabilities.javascript_enabled?
+          return if capabilities.javascript_enabled?
           raise Error::UnsupportedOperationError, "underlying webdriver instance does not support javascript"
         end
 

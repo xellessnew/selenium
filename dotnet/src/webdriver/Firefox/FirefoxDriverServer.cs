@@ -114,10 +114,10 @@ namespace OpenQA.Selenium.Firefox
         }
 
         /// <summary>
-        /// Releases the unmanaged resources used by the <see cref="FirefoxDriverServer"/> and optionally 
+        /// Releases the unmanaged resources used by the <see cref="FirefoxDriverServer"/> and optionally
         /// releases the managed resources.
         /// </summary>
-        /// <param name="disposing"><see langword="true"/> to release managed and resources; 
+        /// <param name="disposing"><see langword="true"/> to release managed and resources;
         /// <see langword="false"/> to only release unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
@@ -125,11 +125,9 @@ namespace OpenQA.Selenium.Firefox
             {
                 // This should only be called after the QUIT command has been sent,
                 // so go ahead and clean up our process and profile.
-                this.process.Quit();
+                this.process.Dispose();
                 this.profile.Clean();
             }
-
-            GC.SuppressFinalize(this);
         }
 
         private static int DetermineNextFreePort(string host, int port)

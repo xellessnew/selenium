@@ -1,5 +1,72 @@
-## v2.48.0-dev
+## v2.49.0-dev
 
+### Notice
+
+Starting with v2.49.0, each release of selenium-webdriver will support the
+latest _minor_ LTS and stable Node releases. All releases between the LTS and
+stable release will have best effort support. Further details are available in
+the selenium-webdriver package README.
+
+### Change Summary
+
+* Add support for Microsoft's Edge web browser
+* Bumped the minimum supported version of Node to v4.2.x
+* Added `promise.Promise#catch()` for API compatibility with native Promises.
+    `promise.Promise#thenCatch()` is not yet deprecated, but it simply
+    delegates to `catch`.
+* Changed some `io` operations to use native promises.
+* Changed `webdriver.CommandExecutor#execute()` and `HttpClient` to return
+    promises instead of using callback passing.
+* Changed the `webdriver.Serializable` class to an interface defined in the
+    `lib/serializable` module.
+* Changed the `Capabilities` class to extend the native `Map` type; Capabilities
+    implements Serializable to preseve existing functionality.
+* Changed the `Capabilities.has(key)` to only test if a capability has been set
+    (Map semantics); to check whether the value is true, use `get(key)`.
+* Migrated the `webdriver.Command*` types from using the Closure Library to the
+    new `lib/command` module.
+* Deprecated `executors.DeferredExecutor` in favor of
+    `lib/command.DeferredExecutor`.
+* API documentation is no longer distributed with the npm package, but remains
+    available at <http://seleniumhq.github.io/selenium/docs/api/javascript/>
+* Rewrote the `error` module to export an Error subtype for each type of error
+    defined in the [W3C WebDriver spec](https://w3c.github.io/webdriver/webdriver-spec.html#handling-errors).
+    For the export types, the `code` property is now the string code used by
+    the W3C spec and _not_ the numeric code used by the Selenium project's
+    wire protocol.
+* Rewrote the `http` module to no longer user the Google Closure Library.
+* Changed the `http.Request` and `http.Response` classes to store headers in
+    maps instead of object literals.
+* Updated `ws` dependency to version `1.0.1`.
+
+### Changes for W3C WebDriver Spec Compliance
+
+* Updated the `By` locators that are not in the W3C spec to delegated to using
+    CSS selectors: `By.className`, `By.id`, `By.name`, and `By.tagName`.
+
+## v2.48.2
+
+* Added `WebElement#takeScreenshot()`.
+* More adjustments to promise callback tracking.
+
+## v2.48.1
+
+* FIXED: Adjusted how the control flow tracks promise callbacks to avoid a
+    potential deadlock.
+
+## v2.48.0
+
+* Node v0.12.x users must run with --harmony. _This is the last release that
+    will support v0.12.x_
+* FIXED: (Promise/A+ compliance) When a promise is rejected with a thenable,
+    the promise adopts the thenable as its rejection reason instead of waiting
+    for it to settle. The previous (incorrect) behavior was hidden by bugs in
+    the `promises-aplus-tests` compliance test suite that were fixed in version
+    `2.1.1`.
+* FIXED: the `webdriver.promise.ControlFlow` now has a consistent execution
+    order for tasks/callbacks scheduled in different turns of the JS event loop.
+    Refer to the `webdriver.promise` documentation for more details.
+* FIXED: do not drop user auth from the WebDriver server URL.
 * FIXED: a single `firefox.Binary` instance may be used to configure and
     launch multiple FirefoxDriver sessions.
 
