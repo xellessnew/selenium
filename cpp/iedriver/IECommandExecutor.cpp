@@ -127,6 +127,7 @@ LRESULT IECommandExecutor::OnCreate(UINT uMsg,
   this->page_load_timeout_ = -1;
   this->is_waiting_ = false;
   this->page_load_strategy_ = "normal";
+  this->file_upload_dialog_timeout_ = 1000;
 
   this->input_manager_ = new InputManager();
   this->input_manager_->Initialize(&this->managed_elements_);
@@ -358,6 +359,14 @@ LRESULT IECommandExecutor::OnNewHtmlDialog(UINT uMsg,
   } else {
     LOG(WARN) << "Unable to get document from dialog";
   }
+  return 0;
+}
+
+LRESULT IECommandExecutor::OnQuit(UINT uMsg,
+                                  WPARAM wParam,
+                                  LPARAM lParam,
+                                  BOOL& bHandled) {
+  this->input_manager_->StopPersistentEvents();
   return 0;
 }
 
@@ -664,11 +673,11 @@ int IECommandExecutor::CreateNewBrowser(std::string* error_message) {
     return ENOSUCHDRIVER;
   }
   // Set persistent hover functionality in the interactions implementation. 
-  setEnablePersistentHover(this->enable_persistent_hover_);
+  this->input_manager_->SetPersistentEvents(this->enable_persistent_hover_);
   LOG(INFO) << "Persistent hovering set to: " << this->enable_persistent_hover_;
   if (!this->enable_persistent_hover_) {
     LOG(INFO) << "Stopping previously-running persistent event thread.";
-    stopPersistentEventFiring();
+    this->input_manager_->StopPersistentEvents();
   }
 
   this->proxy_manager_->SetProxySettings(process_window_info.hwndBrowser);

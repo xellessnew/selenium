@@ -25,9 +25,17 @@
 
 namespace webdriver {
 
+struct KeyInfo {
+  WORD key_code;
+  UINT scan_code;
+  bool is_extended_key;
+  bool is_webdriver_key;
+};
+
 // Forward declaration of classes to avoid
 // circular include files.
 class ElementRepository;
+class InteractionsManager;
 
 class InputManager {
  public:
@@ -51,6 +59,9 @@ class InputManager {
                      Json::Value keystroke_array,
                      bool auto_release_modifier_keys);
   bool SetFocusToBrowser(BrowserHandle browser_wrapper);
+
+  void SetPersistentEvents(bool is_firing);
+  void StopPersistentEvents(void);
 
   bool enable_native_events(void) const { return this->use_native_events_; }
   void set_enable_native_events(const bool enable_native_events) { 
@@ -93,6 +104,12 @@ class InputManager {
                                 int* normalized_y);
   void AddMouseInput(HWND window_handle, long flag, int x, int y);
   void AddKeyboardInput(HWND window_handle, wchar_t character);
+
+  void CreateKeyboardInputItem(KeyInfo key_info, DWORD initial_flags, bool is_generating_keyup);
+
+  bool IsModifierKey(wchar_t character);
+
+  KeyInfo GetKeyInfo(HWND windows_handle, wchar_t character);
   
   bool WaitForInputEventProcessing(int input_count);
 
@@ -111,10 +128,9 @@ class InputManager {
   CComVariant mouse_state_;
 
   ElementRepository* element_map_;
+  InteractionsManager* interactions_manager_;
 
   std::vector<INPUT> inputs_;
-  HHOOK keyboard_hook_handle_;
-  HHOOK mouse_hook_handle_;
 };
 
 } // namespace webdriver

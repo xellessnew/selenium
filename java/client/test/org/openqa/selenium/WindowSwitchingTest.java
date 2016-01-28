@@ -49,7 +49,6 @@ import java.util.Set;
 
 public class WindowSwitchingTest extends JUnit4TestBase {
 
-  @Ignore({MARIONETTE})
   @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
   @Test
   public void testShouldSwitchFocusToANewWindowWhenItIsOpenedAndNotStopFutureOperations() {
@@ -182,7 +181,9 @@ public class WindowSwitchingTest extends JUnit4TestBase {
   @Test
   public void testShouldBeAbleToIterateOverAllOpenWindows() {
     driver.get(pages.xhtmlTestPage);
+    String original = driver.getWindowHandle();
     driver.findElement(By.name("windowOne")).click();
+    driver.switchTo().window(original);
     driver.findElement(By.name("windowTwo")).click();
 
     wait.until(windowHandleCountToBeGreaterThan(2));

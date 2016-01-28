@@ -121,13 +121,13 @@
         <module>chrome-driver</module>
         <module>edge-driver</module>
         <module>firefox-driver</module>
-        <module>htmlunit-driver</module>
         <module>ie-driver</module>
         <module>java</module>
         <module>remote-driver</module>
         <module>safari-driver</module>
         <module>server</module>
         <module>support</module>
+        <module>htmlunit-driver</module>
         <module>leg-rc</module>
     </modules>
 
@@ -141,7 +141,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>18.0</version>
+                <version>19.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
@@ -181,12 +181,12 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5</version>
+                <version>4.5.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>
-                <version>4.4.1</version>
+                <version>4.4.3</version>
             </dependency>
             <dependency>
                 <groupId>org.hamcrest</groupId>
@@ -201,7 +201,7 @@
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
-                <version>6.8</version>
+                <version>6.9.9</version>
             </dependency>
             <dependency>
                 <groupId>org.webbitserver</groupId>

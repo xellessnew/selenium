@@ -161,13 +161,12 @@ class RemoteConnection(object):
         """
         cls._timeout = socket._GLOBAL_DEFAULT_TIMEOUT
 
-    def __init__(self, remote_server_addr, keep_alive=False):
+    def __init__(self, remote_server_addr, keep_alive=False, resolve_ip=True):
         # Attempt to resolve the hostname and get an IP address.
         self.keep_alive = keep_alive
         parsed_url = parse.urlparse(remote_server_addr)
-        self._hostname = parsed_url.hostname
         addr = ""
-        if parsed_url.hostname:
+        if parsed_url.hostname and resolve_ip:
             try:
                 netloc = socket.gethostbyname(parsed_url.hostname)
                 addr = netloc
@@ -415,11 +414,10 @@ class RemoteConnection(object):
             headers = {"Connection": 'keep-alive', method: parsed_url.path,
                        "User-Agent": "Python http auth",
                        "Content-type": "application/json;charset=\"UTF-8\"",
-                       "Accept": "application/json",
-                       "Host": self._hostname}
+                       "Accept": "application/json"}
             if parsed_url.username:
-                auth = base64.standard_b64encode('%s:%s' %
-                       (parsed_url.username, parsed_url.password)).replace('\n', '')
+                auth = base64.standard_b64encode(('%s:%s' %
+                       (parsed_url.username, parsed_url.password)).encode('ascii')).decode('ascii').replace('\n', '')
                 headers["Authorization"] = "Basic %s" % auth
             if body and method != 'POST' and method != 'PUT':
                 body = None
@@ -454,7 +452,6 @@ class RemoteConnection(object):
 
             request.add_header('Accept', 'application/json')
             request.add_header('Content-Type', 'application/json;charset=UTF-8')
-            request.add_header('Host', self._hostname)
 
             if password_manager:
                 opener = url_request.build_opener(url_request.HTTPRedirectHandler(),
@@ -476,7 +473,7 @@ class RemoteConnection(object):
             if 300 <= statuscode < 304:
                 return self._request('GET', resp.getheader('location'))
             body = data.decode('utf-8').replace('\x00', '').strip()
-            if 399 < statuscode < 500:
+            if 399 < statuscode <= 500:
                 return {'status': statuscode, 'value': body}
             content_type = []
             if resp.getheader('Content-Type') is not None:

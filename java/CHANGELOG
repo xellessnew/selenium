@@ -1,3 +1,197 @@
+v2.50.0
+=======
+
+WebDriver:
+    * Firefox: fixing sendKeys throwing "cross-process JS call failed " in FF45
+    * Firefox: fixing click to multirect elements broken by the previous PR
+    * Check element corners and middle for clickability
+    * Fix keyCodes for some characters in the FirefoxDriver.
+    * Firefox: fixing malformed URL handling. Fixed issue #1248
+    * Prevent Firefox from opening a page on a second or later run and/or after some amount of time
+    * Fixing executable finder on Windows
+    * Fixing HtmlUnit driver to pass recently added tests
+    * Firefox: fixing appending to contenteditable elements. Fixes issue 1419
+    * correct javascript remote client ui executor to use new promise based execute introduced by 0fa587 Fixes #1521
+    * Firefox: Adding an extra check to result wrapper. Fixes issue #1426
+    * Changes to simplify the execution of finding elements.
+    * Fixing issue #1479. The only reasonable thing we can do for select elements is to disable clickability checking, see https://gist.github.com/p0deje/c549e93fa19bf7aaee49
+
+Grid: 
+    * Found a better place to convert seconds to milliseconds
+
+v2.49.1
+=======
+
+Grid:
+    * Fixing timeout issue in the Grid.
+
+WebDriver:
+    * Allow GeckoDriverService to be extended.
+    * Update tagName test searching for "" to throw
+
+v2.49.0
+=======
+
+WebDriver:
+    * Add maven coordinate for the Firefox Driver when built using Buck.
+    * Remove guava dep on the selenium-apis when built using Buck.
+    * on osx for firefox, fallback to checking homebrew install, if the default isn't there
+    * Pass Options.ime() through to the wrapped driver.
+    * Fixing HTML suite test runner
+    * Bump guava to version 19
+    * Ensure that the buck-built core library has no third party dependencies.
+    * Updating textContent attribute test for IE9
+    * Adding appropriate wait to AuthenticatedPageLoadingTest
+    * Refactor concrete WebDriverException#getSupportUrl's
+    * Fix a NullPointerException in RemoteWebDriver.getCurrentUrl
+    * Reduces time wasted in when using a native driver
+    * add the useful information about the session / capabilities in the exception when the 'browser may have died'
+    * give the cleaner almost double the time to clean up the sessions (a whopping 9 more ms). Hopefull will deflake this test in CI.
+    * Adding El Capitan (OS X 10.11) to Platform
+    * Updating IE driver to fix clearing of <input type='number'> fields
+    * Treat a null response to getCookies as [].
+    * Restore a isNativeEventsEnabled check.
+    * Updating TestNG.
+    * firefox: Throw error when element cannot be clicked
+    * Include Windows 10 in the Platform enum.
+    * adding selenium server pass throughs for W3C dialect of alert / window / cookie commands.
+    * clearing a number input with invalid text, should actually clear it.
+    * Add innerHTML attribute support to HtmlUnitDriver
+    * Add textContent attribute support to HtmlUnitDriver
+    * make RemoteMouse public, akin to RemoteKeyboard. Not sure why it wasn't made public when it was originally moved out of RWD.
+    * Use platform-dependant line separator instead of hardcoded '\n'.
+    * Safari should only specify MAC as platform in default desired capabilities
+    * improve javadoc for FluentWait
+    * Changing interface name to be more Java-ish
+    * Update GeneratedJsTestServlet to work with test files that use Closure's module syntax.
+    * Adding release-v3 crazyfun target
+    * should be able to send keys to a content editable div that is initially empty
+    * Implementing pure WebDriver grid server (v.3)
+    * Making BrowserLauncherFactory non-static, to avoid global configuration, for better testability and configurability (per object, not globally)
+    * Server: Moving shared classes to a more appropriate place out of the legacy server namespace
+    * Deleting RemoteControlLauncher as it is just a couple of static methods to parse command line options, that should belong to the server.
+    * Refactoring GridLauncher: replacing big switch with a map of simple launchers; it's a step toward decomposition of the GridLauncher and dynamic discovery of the elements that can be launched.
+    * Refactoring GridLauncher build process
+    * Decoupling node registration module (SelfRegisteringRemote) from concrete implementation of the server to be run on the node.
+    * Refactoring grid node registration procedure to make server start/stop methods as simple as possible.
+    * Breaking another dependency of Grid on RC server
+    * Deleting fail-fast check of browser configuration, this breaks another Grid dependency on parts of RC server. The check must be performed in RC server (if ever).
+    * Actually fix the Safari BUCK build
+    * Monkey-patching W3C-compatible cookie serialization to fix Marionette. A more proper fix would be to change the parameters of a Command from Map to Object.
+    * There is no need to create a profile for Marionette
+    * removing prebuilt SafariDriver extension, bumping version number to 2.48
+    * Fixing tests for JsonToBeanConverter to avoid "error" key collision that has got new semantics in the standard
+    * Stop exposing embedded jetty out of SeleniumServer
+    * Breaking unwanted grid dependency on parts of RC server
+    * Deleting JsonKey, it's a useless abstraction
+    * Breaking unwanted grid test dependency on RC server (the removed attribute is not used actually)
+    * Fixes #1140, #1334, #1263, #669, #1165, #1132, #1186, #1203, #1214, #1242
+            #1241, #1240, #1238, #1237
+
+v2.48.2
+=======
+WebDriver:
+    * Update fix for ChromeDriver to work with Marionette/Wires also.
+
+v2.48.1
+=======
+WebDriver:
+    * Fix #1123, ChromeDriver doesn't start up.
+
+v2.48.0
+=======
+
+WebDriver:
+    * java: add ExpectedConditions#numberOfWindowsToBe
+    * Bump the buck version to the latest version.
+    * fix maven build for jetty 9
+    * adding pom files for jetty 9 repakced jars and the empty-javadoc jar used to upload to maven central
+    * Restoring use of queued thread pool in the hub
+    * Deleting commented code
+    * Fixing UploadServlet in test environment to conform to servlet-api 3.1
+    * Update jetty readme
+    * Bump the Jetty version from 7 to 9
+    * Updating screenshot code to retain scroll bars in required directions.
+    * Updating screenshot code to prevent resizing if window is large enough.
+    * Removing superfluous comment that was causing javadoc build error in ci
+    * fixing the remaining jdk 8 javadoc errors
+    * Make the javadocs for java/server too.
+    * fixing java command line options for 'go' MaxPermSize -> MetaspaceSize in java 8
+    * updating third party wicked good xpath to e33a3876a6d592b824942751d86ba5f2b08a3dc5 Fixes #1040
+    * Removing use of Windows hooks for taking screenshots in IE.
+    * Firefox: fixing sendKeys for contentEditable elements, it should append to the existing text.
+    * Buck version bumps
+    * Update closure-library to 04a8ceefc6972511e669563d47abeca18b28092c
+    * Firefox: implementing mouse doubleclick action via nsIDOMWindowUtils
+    * Add FluentWait.withMessage with string supplier
+    * Firefox: fixing events generated as a result of click on an element that disappears after the click.
+    * Firefox: implementing mouse up/down actions via nsIDOMWindowUtils. This makes mouse actions "more native". In particular, if there are overlapping element at the click point, the driver will click the topmost element.
+    * Safari: stop embedding the extension in the client libs, it should be downloaded and installed manually.
+    * Deleting a couple of redundant casts
+    * No need to cast, the variable has required type already
+    * Deleting redundant logging to console in tests
+    * HtmlUnit: Ignoring one more test
+    * Disabling a test if JS is not enabled
+    * HtmlUnit: Unignoring a magically working test
+    * HtmlUnit: restoring backward compatibility after changes in getCurrentUrl semantics
+    * WDBC: restoring backward compatibility after changes in getCurrentUrl semantics
+    * Deleting native events from firefox driver
+    * Deleting outdated assumes for unsupported Firefox version
+    * Resorting tests for moveByOffset action
+    * Firefox: don't dispatch keypress event if defaultPrevent() of the keydown event is called because KEY_FLAG_PREVENT_DEFAULT has no effect
+    * Moving IE specific test to IE test suite
+    * Firefox: throwing proper exception on an attempt to find an element in the deleted frame
+    * Firefox: changing getCurrentUrl to return top level browsing context address (to conform to the standard)
+    * Firefox: fixing page source for plain text pages
+    * Adding information on the reasons to ignore tests
+    * fix the client and server classpath
+    * Move the servlet-api package for easier automated updates.
+    * Renaming the Jetty7AppServer to remove the version number.
+    * Fix up failing htmlunitdriver test.
+    * Simulating window.getPosition and setPosition operations
+    * Simulating switchTo().window by name
+    * Fixing test to switch back to the original window after opening a new one.
+    * Implementing standard-compliant window operations
+    * Implementing standard-compliant getSize, getPosition and getPositionInView
+    * Deleting marionette tcp connector
+    * remove unused css transform code from location in view
+    * use BasicHttpRequest instead of EnclosingRequest
+    * htmlunit passes the httponly cookie test
+    * fix maven dependency of htmlunit driver on the support package
+    * don't replace a platform specified to the add browser method, like the TODO says
+    * Simulating submit operation for standard compliant drivers
+    * Making sendKeys more backward compatible (because i18n tests)
+    * Change buils to builds
+    * Unignoring marionette tests passed after sendKeys rework
+    * Fixing getSize operation broken by copy-paste from getLocation
+    * Reworking sendKeys to send characters one by one, this is standard compliant behavior
+    * Making switchTo().window more standard compliant
+    * Making getLocation and getSize standard compliant
+    * Making timeout setting methods standard compliant
+    * Fixing "no such alert" error mapping
+    * Making findElement(s) commands standard compliant (except for link text locators)
+    * java: fix log string for RemoteTargetLocator#defaultContent
+    * Update check to see if we are speaking to a W3C remote end point
+    * specificationLevel is defined in http://w3c.github.io/webdriver/webdriver-spec.html#capabilities
+    * use exception message.  no method overload exists for log.severe
+    * Upgrade HtmlUnit 2.18
+    * ReflectionBackendDriverSupplier: two arguments Capabilities
+    * HtmlUnitMouse: no need to .focus()
+    * Fix HtmlUnitWebElement.getCssValue
+    * AMO requires the max version be an actual release version number
+    * Correcting IE driver build process to create executables runnable on Windows XP Fixes issue #936.
+    * Improve comments and error message on scrolling_test#testScrollingAccountsForScrollbarWidths.
+    * Java client side support for launch_app command of chromedriver:
+    * Add "additionalCommands" support to DriverCommandExecutor.
+    * Use directExecutor().
+    * Updating IE driver C++ code to use Visual Studio 2015.
+
+Grid:
+    * Run grid tests using Buck.
+    * removing '-debug' command line parameter for grid hub, it isn't used anywhere.
+    * adding edge icon for grid
+
+
 v2.47.0
 =======
 
@@ -127,7 +321,7 @@ Other notable changes:
   compatibility
 * PageFactory: Provide ability to use custom annotations. (Provided
   by Artem Koshelev)
-* Use DaemonExecutor from commons-exec instead of DefaultExecutor. 
+* Use DaemonExecutor from commons-exec instead of DefaultExecutor.
   Fixes Google Code issue 4734. (Provided by Richard Atkins)
 * FirefoxDriver and Java language bindings now handle both legacy and
   W3C specification dialects of element reference serialization in the
@@ -1860,3 +2054,4 @@ Grid:
   * Track when a session has become orphaned.  I.e., when the client sends no
     commands after the initial session creation.  This almost always indicates
     the client is no longer connected and the session is unusable immediately.
+----

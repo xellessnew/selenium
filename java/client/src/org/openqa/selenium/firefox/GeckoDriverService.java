@@ -26,6 +26,7 @@ import org.openqa.selenium.remote.service.DriverService;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 /**
  * Manages the life and death of an GeckoDriver aka 'wires'.
@@ -46,8 +47,8 @@ public class GeckoDriverService extends DriverService {
    * @param environment The environment for the launched server.
    * @throws IOException If an I/O error occurs.
    */
-  private GeckoDriverService(File executable, int port, ImmutableList<String> args,
-                             ImmutableMap<String, String> environment) throws IOException {
+  public GeckoDriverService(File executable, int port, ImmutableList<String> args,
+                            ImmutableMap<String, String> environment) throws IOException {
     super(executable, port, args, environment);
   }
 
@@ -61,6 +62,11 @@ public class GeckoDriverService extends DriverService {
    */
   public static GeckoDriverService createDefaultService() {
     return new Builder().usingAnyFreePort().build();
+  }
+
+  @Override
+  protected void waitUntilAvailable() throws MalformedURLException {
+    return;
   }
 
   /**

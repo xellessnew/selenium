@@ -21,9 +21,9 @@ namespace OpenQA.Selenium
             driver.FindElement(By.LinkText("Open new window")).Click();
             Assert.AreEqual("XHTML Test Page", driver.Title);
 
-            WaitFor(WindowCountToBe(2));
-            WaitFor(WindowWithName("result"));
-            WaitFor(() => { return driver.Title == "We Arrive Here"; });
+            WaitFor(WindowCountToBe(2), "Window count was not 2");
+            WaitFor(WindowWithName("result"), "Could not find window with name 'result'");
+            WaitFor(() => { return driver.Title == "We Arrive Here"; }, "Browser title was not 'We Arrive Here'");
             Assert.AreEqual("We Arrive Here", driver.Title);
 
             driver.Url = iframesPage;
@@ -67,10 +67,10 @@ namespace OpenQA.Selenium
 
             driver.FindElement(By.LinkText("Open new window")).Click();
 
-            WaitFor(WindowCountToBe(2));
+            WaitFor(WindowCountToBe(2), "Window count was not 2");
             Assert.AreEqual(2, driver.WindowHandles.Count);
 
-            WaitFor(WindowWithName("result"));
+            WaitFor(WindowWithName("result"), "Could not find window with name 'result'");
             driver.SwitchTo().Window("result");
             driver.Close();
 
@@ -101,10 +101,10 @@ namespace OpenQA.Selenium
 
             driver.FindElement(By.LinkText("Open new window")).Click();
 
-            WaitFor(WindowCountToBe(2));
+            WaitFor(WindowCountToBe(2), "Window count was not 2");
             Assert.AreEqual(2, driver.WindowHandles.Count);
 
-            WaitFor(WindowWithName("result"));
+            WaitFor(WindowWithName("result"), "Could not find window with name 'result'");
             driver.SwitchTo().Window("result");
             driver.Close();
 
@@ -148,10 +148,10 @@ namespace OpenQA.Selenium
 
             driver.FindElement(By.LinkText("Open new window")).Click();
 
-            WaitFor(WindowCountToBe(2));
+            WaitFor(WindowCountToBe(2), "Window count was not 2");
             Assert.AreEqual(2, driver.WindowHandles.Count);
 
-            WaitFor(WindowWithName("result"));
+            WaitFor(WindowWithName("result"), "Could not find window with name 'result'");
             driver.SwitchTo().Window("result");
             IWebElement body = driver.FindElement(By.TagName("body"));
             driver.Close();
@@ -172,16 +172,16 @@ namespace OpenQA.Selenium
         }
 
         [Test]
-        [NeedsFreshDriver(BeforeTest = true, AfterTest = true)]
+        [NeedsFreshDriver(IsCreatedBeforeTest = true, IsCreatedAfterTest = true)]
         [IgnoreBrowser(Browser.IE)]
         [IgnoreBrowser(Browser.Safari, "Hangs Safari driver")]
         public void ShouldBeAbleToIterateOverAllOpenWindows()
         {
             driver.Url = xhtmlTestPage;
             driver.FindElement(By.Name("windowOne")).Click();
-            WaitFor(WindowCountToBe(2));
+            WaitFor(WindowCountToBe(2), "Window count was not 2");
             driver.FindElement(By.Name("windowTwo")).Click();
-            WaitFor(WindowCountToBe(3));
+            WaitFor(WindowCountToBe(3), "Window count was not 3");
 
             ReadOnlyCollection<string> allWindowHandles = driver.WindowHandles;
 
@@ -203,6 +203,12 @@ namespace OpenQA.Selenium
         {
             bool isIEDriver = TestUtilities.IsInternetExplorer(driver);
             bool isIE6 = TestUtilities.IsIE6(driver);
+            bool isMarionette = TestUtilities.IsMarionette(driver);
+
+            if (isMarionette)
+            {
+                Assert.Ignore("Hangs Firefox under Marionette");
+            }
 
             driver.Url = xhtmlTestPage;
 
@@ -214,11 +220,11 @@ namespace OpenQA.Selenium
 
             try
             {
-                IWebElement closeElement = WaitFor(() => { return driver.FindElement(By.Id("close")); });
+                IWebElement closeElement = WaitFor(() => { return driver.FindElement(By.Id("close")); }, "Could not find element with id 'close'");
                 closeElement.Click();
                 if (isIEDriver && !isIE6)
                 {
-                    IAlert alert = WaitFor<IAlert>(AlertToBePresent());
+                    IAlert alert = WaitFor<IAlert>(AlertToBePresent(), "No alert found");
                     alert.Accept();
                 }
                 // If we make it this far, we're all good.
@@ -237,6 +243,12 @@ namespace OpenQA.Selenium
         {
             bool isIEDriver = TestUtilities.IsInternetExplorer(driver);
             bool isIE6 = TestUtilities.IsIE6(driver);
+            bool isMarionette = TestUtilities.IsMarionette(driver);
+
+            if (isMarionette)
+            {
+                Assert.Ignore("Clicking on element that closes window can hang Marionette.");
+            }
 
             driver.Url = xhtmlTestPage;
 
@@ -248,11 +260,11 @@ namespace OpenQA.Selenium
 
             try
             {
-                IWebElement closeElement = WaitFor(() => { return driver.FindElement(By.Id("close")); });
+                IWebElement closeElement = WaitFor(() => { return driver.FindElement(By.Id("close")); }, "Could not find element with id 'close'");
                 closeElement.Click();
                 if (isIEDriver && !isIE6)
                 {
-                    IAlert alert = WaitFor<IAlert>(AlertToBePresent());
+                    IAlert alert = WaitFor<IAlert>(AlertToBePresent(), "No alert found");
                     alert.Accept();
                 }
                 ReadOnlyCollection<string> handles = driver.WindowHandles;
@@ -298,13 +310,13 @@ namespace OpenQA.Selenium
         [Test]
         [IgnoreBrowser(Browser.Safari, "Hangs Safari driver")]
         [IgnoreBrowser(Browser.WindowsPhone, "Driver does not support multiple windows")]
-        [NeedsFreshDriver(BeforeTest = true, AfterTest = true)]
+        [NeedsFreshDriver(IsCreatedBeforeTest = true, IsCreatedAfterTest = true)]
         public void CanCloseWindowWhenMultipleWindowsAreOpen()
         {
             driver.Url = xhtmlTestPage;
             driver.FindElement(By.Name("windowOne")).Click();
 
-            WaitFor(WindowCountToBe(2));
+            WaitFor(WindowCountToBe(2), "Window count was not 2");
 
             ReadOnlyCollection<string> allWindowHandles = driver.WindowHandles;
 
@@ -314,7 +326,7 @@ namespace OpenQA.Selenium
             driver.SwitchTo().Window(handle1);
             driver.Close();
 
-            WaitFor(WindowCountToBe(1));
+            WaitFor(WindowCountToBe(1), "Window count was not 1");
 
             allWindowHandles = driver.WindowHandles;
             Assert.AreEqual(1, allWindowHandles.Count);
@@ -322,7 +334,7 @@ namespace OpenQA.Selenium
 
         [Test]
         [IgnoreBrowser(Browser.Safari, "Hangs Safari driver")]
-        [NeedsFreshDriver(BeforeTest = true, AfterTest = true)]
+        [NeedsFreshDriver(IsCreatedBeforeTest = true, IsCreatedAfterTest = true)]
         public void ClosingOnlyWindowShouldNotCauseTheBrowserToHang()
         {
             driver.Url = xhtmlTestPage;
@@ -341,7 +353,7 @@ namespace OpenQA.Selenium
             driver.Url = xhtmlTestPage;
             driver.FindElement(By.LinkText("Open new window")).Click();
 
-            WaitFor(WindowCountToBe(2));
+            WaitFor(WindowCountToBe(2), "Window count was not 2");
 
             string handle1, handle2;
             handle1 = driver.CurrentWindowHandle;
@@ -365,13 +377,13 @@ namespace OpenQA.Selenium
 
         [Test]
         [Ignore("Ignored for all browsers")]
-        [NeedsFreshDriver(AfterTest = true)]
+        [NeedsFreshDriver(IsCreatedAfterTest = true)]
         public void CloseShouldCloseCurrentHandleOnly()
         {
             driver.Url = xhtmlTestPage;
             driver.FindElement(By.LinkText("Open new window")).Click();
 
-            WaitFor(WindowCountToBe(2));
+            WaitFor(WindowCountToBe(2), "Window count was not 2");
 
             string handle1, handle2;
             handle1 = driver.CurrentWindowHandle;

@@ -22,6 +22,7 @@ java_library(
 )
 
 java_library(name = 'core',
+  maven_coords = "org.seleniumhq.selenium:selenium-api:2.49.0",
   srcs = [
     'Alert.java',
     'By.java',
@@ -59,10 +60,9 @@ java_library(name = 'core',
     ':platform',
     ':primitives',
     '//java/client/src/org/openqa/selenium/interactions:core',
-    '//java/client/src/org/openqa/selenium/io:io',
+    '//java/client/src/org/openqa/selenium/interactions:exceptions',
     '//java/client/src/org/openqa/selenium/logging:api',
     '//java/client/src/org/openqa/selenium/security:security',
-    "//third_party/java/httpcomponents:httpclient",
   ],
   visibility = [
     '//java/client/src/org/openqa/selenium/interactions:interactions',
@@ -119,6 +119,7 @@ java_library(name = 'primitives',
   srcs = [
     'Dimension.java',
     'Point.java',
+    'Rectangle.java',
   ],
   visibility = [
     '//java/client/src/org/openqa/selenium/interactions:core',

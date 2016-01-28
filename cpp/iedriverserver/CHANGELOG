@@ -9,6 +9,112 @@ available via the project downloads page. Changes in "revision" field indicate
 private releases checked into the prebuilts directory of the source tree, but
 not made generally available on the downloads page.
 
+v2.50.0.0
+=========
+ * Release to synchronize with release of Selenium project.
+ * Updates to JavaScript automation atoms.
+
+v2.49.0.2
+=========
+ * Fixed finding elements where native CSS selector engine cannot be found.
+
+v2.49.0.1
+=========
+ * Updates to JavaScript automation atoms.
+ * Changes to simplify the execution of finding elements. The driver now
+   delegates more of the error handling of finding elements to the JavaScript
+   automation atoms. This has the effect of simplifying the code within the
+   driver, and synchronizes the error-case behavior with other implementations.
+
+v2.49.0.0
+=========
+ * Release to synchronize with release of Selenium project.
+
+v2.48.0.5
+=========
+ * Refactoring of IE driver native events interaction code. This commit
+   removes the dependency on shared native event code with Firefox.
+   Since Firefox no longer supports native events, it makes no sense to
+   have common code refactored for only one consumer, so this commit
+   moves the Windows-only SendMessage code directly into the IE driver.
+   This is a first step toward deleting the webdriver-interactions
+   directory. While extreme care has been taken to ensure this
+   refactoring causes no regressions, there is a chance something will
+   still break. This particular refactor should also be treated as an
+   intermediate step, as the ported code contains some redundancies to
+   what is already present in the driver. Future refactoring will take
+   place to remove the redundancies and better integrate the code.
+
+v2.48.0.4
+=========
+ * Added ability to set whitelisted IP addresses to access IE driver server.
+   The list of IP addresses is a comma-delimited list passed to the
+   /whitelisted-ips command-line argument. Defaults to local loopback address
+   only. Also improved logging to show executable version and architecture in
+   driver log. Patch provided by lsowen.
+
+v2.48.0.3
+=========
+ * Updates to JavaScript automation atoms.
+ * Modifications to file upload functionality. Added additional logging
+   to help diagnose issues where the file selection dialog is not closed
+   by the driver. Also added a new capability, ie.fileUploadDialogTimeout
+   to allow users to customize the amount of time the driver waits for
+   the file selection dialog before giving up. It defaults to one second.
+   Finally, the driver now checks that the file exists before sending the
+   file name to the file selection dialog. If the file does not exist,
+   the sendKeys method will throw an exception explicitly stating that
+   the file does not exist.
+
+v2.48.0.2
+=========
+ * Updates to JavaScript automation atoms.
+ * Includes fix for clearing input elements with type "number".
+
+v2.48.0.1
+=========
+ * Updating to return top-level URL when focused on a frame. This makes the
+   driver now consistent with other implementations.
+
+v2.48.0.0
+=========
+ * Release to synchronize with release of Selenium project.
+
+v2.47.0.5
+=========
+ * Updating screenshot code to retain scroll bars in required directions.
+   When an IE window needs to be resized to obtain the full-DOM screenshot,
+   if it has scroll bars in either direction, those scroll bars need to be
+   present in the resized window, so that layout recalculation doesn't occur.
+   In practice, this means reducing the window size by 2 pixels in the
+   appropriate direction before taking the screenshot. The resulting scroll
+   bars are cropped from the image.
+
+v2.47.0.4
+=========
+ * Updates to JavaScript automation atoms.
+ * Updating screenshot code to prevent resizing if window is large enough.
+   In the previous screenshot update, the driver would incorrectly resize
+   the IE window smaller if the document was smaller in height or width
+   than the current window size. This could cause redraws of the page
+   being viewed such that after resizing, the screenshot still did not
+   display the entire page. This commit resolves that issue, and also takes
+   into account the size of the scroll bars when creating the screenshot
+   image. NOTE: There is a *very* slight chance that resizing the window
+   so there are no longer scroll bars to be displayed *might* still cause
+   layout redraws such that the screenshot does not show the entire DOM
+   after the resize. Since we should now always be expanding the window size,
+   never contracting it, this is a corner case that explicitly will *not* be
+   fixed. Any issue reports describing this corner case will be closed without
+   action. Fixes issue #1085.
+
+v2.47.0.3
+=========
+ * Updates to JavaScript automation atoms.
+ * Removed use of Windows hooks for taking screenshots in IE. This will fix
+   the issue of taking full-page screenshots when using the 32-bit IE driver
+   on 64-bit Windows installations.
+
 v2.47.0.2
 =========
  * Corrected build process to create executables runnable on Windows XP.

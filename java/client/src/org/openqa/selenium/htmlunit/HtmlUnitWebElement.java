@@ -34,6 +34,7 @@ import org.openqa.selenium.InvalidSelectorException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
@@ -167,7 +168,7 @@ public class HtmlUnitWebElement implements WrapsDriver,
         submitForm((HtmlForm) element);
         return;
       } else if ((element instanceof HtmlSubmitInput) || (element instanceof HtmlImageInput)) {
-        ((HtmlElement) element).click();
+        element.click();
         return;
       } else if (element instanceof HtmlInput) {
         HtmlForm form = ((HtmlElement) element).getEnclosingForm();
@@ -263,7 +264,7 @@ public class HtmlUnitWebElement implements WrapsDriver,
         throw new InvalidElementStateException("You may only interact with enabled elements");
       }
       htmlTextArea.setText("");
-    } else if (element.getAttribute("contenteditable") != DomElement.ATTRIBUTE_NOT_DEFINED) {
+    } else if (!element.getAttribute("contenteditable").equals(DomElement.ATTRIBUTE_NOT_DEFINED)) {
       element.setTextContent("");
     }
   }
@@ -278,7 +279,7 @@ public class HtmlUnitWebElement implements WrapsDriver,
       }
     });
 
-    if (displayed == null || !displayed.booleanValue()) {
+    if (displayed == null || !displayed) {
       throw new ElementNotVisibleException("You may only interact with visible elements");
     }
 
@@ -298,12 +299,12 @@ public class HtmlUnitWebElement implements WrapsDriver,
       if (jsEnabled &&
           !oldActiveEqualsCurrent &&
           !isBody) {
-        ((HtmlElement) oldActiveElement.element).blur();
+        oldActiveElement.element.blur();
       }
     } catch (StaleElementReferenceException ex) {
       // old element has gone, do nothing
     }
-    ((HtmlElement) element).focus();
+    element.focus();
   }
 
   void sendKeyDownEvent(CharSequence modifierKey) {
@@ -414,6 +415,14 @@ public class HtmlUnitWebElement implements WrapsDriver,
       return null;
     }
 
+    if ("textContent".equalsIgnoreCase(lowerName)) {
+      return element.getTextContent();
+    }
+
+    if ("innerHTML".equalsIgnoreCase(lowerName)) {
+      return element.asXml();
+    }
+
     if ("value".equals(lowerName)) {
       if (element instanceof HtmlTextArea) {
         return ((HtmlTextArea) element).getText();
@@ -503,6 +512,10 @@ public class HtmlUnitWebElement implements WrapsDriver,
     } catch (Exception e) {
       throw new WebDriverException("Cannot determine size of element", e);
     }
+  }
+
+  public Rectangle getRect() {
+    return new Rectangle(getLocation(), getSize());
   }
 
   private int readAndRound(final String property) {
@@ -683,7 +696,7 @@ public class HtmlUnitWebElement implements WrapsDriver,
   }
 
   private List<WebElement> findChildNodes(List<WebElement> allElements) {
-    List<WebElement> toReturn = new LinkedList<WebElement>();
+    List<WebElement> toReturn = new LinkedList<>();
 
     for (WebElement current : allElements) {
       DomElement candidate = ((HtmlUnitWebElement) current).element;
@@ -766,7 +779,7 @@ public class HtmlUnitWebElement implements WrapsDriver,
     assertElementNotStale();
 
     String expectedText = linkText.trim();
-    List<? extends DomElement> htmlElements = ((HtmlElement) element).getHtmlElementsByTagName("a");
+    List<? extends HtmlElement> htmlElements = ((HtmlElement) element).getHtmlElementsByTagName("a");
     List<WebElement> webElements = new ArrayList<>();
     for (DomElement e : htmlElements) {
       if (expectedText.equals(e.getTextContent().trim()) && e.getAttribute("href") != null) {

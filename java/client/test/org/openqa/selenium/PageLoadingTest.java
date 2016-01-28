@@ -48,9 +48,7 @@ import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
 import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.getEffectivePlatform;
 import static org.openqa.selenium.testing.TestUtilities.isChrome;
-import static org.openqa.selenium.testing.TestUtilities.isFirefox;
 import static org.openqa.selenium.testing.TestUtilities.isLocal;
-import static org.openqa.selenium.testing.TestUtilities.isNativeEventsEnabled;
 
 import org.junit.After;
 import org.junit.Test;
@@ -143,7 +141,7 @@ public class PageLoadingTest extends JUnit4TestBase {
     assertTrue("Took too long to load page: " + duration, duration < 5 * 1000);
   }
 
-  @Ignore(value = {IE, CHROME, SAFARI, MARIONETTE, PHANTOMJS})
+  @Ignore(value = {IE, CHROME, SAFARI, PHANTOMJS})
   @NeedsLocalEnvironment
   @Test
   public void testEagerStrategyShouldNotWaitForResourcesOnRefresh() {
@@ -218,12 +216,20 @@ public class PageLoadingTest extends JUnit4TestBase {
     }
   }
 
-  @Ignore(value = {IE, SAFARI, MARIONETTE, PHANTOMJS})
+  @Ignore(value = {IE, SAFARI, PHANTOMJS})
   @Test(expected = WebDriverException.class)
   @NeedsFreshDriver
   public void testShouldThrowIfUrlIsMalformed() {
     assumeFalse("Fails in Sauce Cloud", SauceDriver.shouldUseSauce());
     driver.get("www.test.com");
+  }
+
+  @Ignore(value = {IE, SAFARI, PHANTOMJS})
+  @Test(expected = WebDriverException.class)
+  @NeedsFreshDriver
+  public void testShouldThrowIfUrlIsMalformedInPortPart() {
+    assumeFalse("Fails in Sauce Cloud", SauceDriver.shouldUseSauce());
+    driver.get("http://localhost:3001bla");
   }
 
   @Ignore(value = {SAFARI, MARIONETTE}, issues = {4062})
@@ -234,6 +240,8 @@ public class PageLoadingTest extends JUnit4TestBase {
   }
 
   @Test
+  @Ignore(value = {IE},
+          reason = "IE: change in test web server causes IE to return resource 404 page instead of custom HTML")
   public void testShouldReturnURLOnNotExistedPage() {
     String url = appServer.whereIs("not_existed_page.html");
     driver.get(url);
@@ -383,11 +391,10 @@ public class PageLoadingTest extends JUnit4TestBase {
 
   // Note: If this test ever fixed/enabled on Firefox, check if it also needs @NoDriverAfterTest OR
   // if @NoDriverAfterTest can be removed from some other tests in this class.
-  @Ignore(value = {FIREFOX, HTMLUNIT, MARIONETTE, SAFARI, PHANTOMJS},
-          reason = "Firefox: fails; Marionette: Not implemented; Safari: see issue 687, comment 41;"
-              + "PHANTOMJS: not tested",
-          issues = {687})
+  @Ignore(value = {HTMLUNIT, SAFARI, PHANTOMJS, FIREFOX},
+          reason = "Safari: see issue 687, comment 41; PHANTOMJS: not tested", issues = {687})
   @NeedsLocalEnvironment
+  @NoDriverAfterTest
   @Test
   public void testPageLoadTimeoutCanBeChanged() {
     try {
@@ -424,7 +431,6 @@ public class PageLoadingTest extends JUnit4TestBase {
   @NoDriverAfterTest // Subsequent tests sometimes fail on Firefox.
   @Test
   public void testShouldTimeoutIfAPageTakesTooLongToLoadAfterClick() {
-    assumeFalse(isFirefox(driver) && isNativeEventsEnabled(driver));
     // Fails on Chrome 44 (and higher?) https://code.google.com/p/chromedriver/issues/detail?id=1125
     assumeFalse(
         "chrome".equals(((HasCapabilities) driver).getCapabilities().getBrowserName())
@@ -491,7 +497,7 @@ public class PageLoadingTest extends JUnit4TestBase {
     wait.until(titleIs("XHTML Test Page"));
   }
 
-  @Ignore(value = {CHROME, SAFARI, MARIONETTE},
+  @Ignore(value = {CHROME, SAFARI},
           reason = "Not implemented; Safari: see issue 687, comment 41",
           issues = {687})
   @NotYetImplemented(HTMLUNIT)

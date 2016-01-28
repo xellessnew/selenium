@@ -102,7 +102,8 @@ class FirefoxBinary(object):
                 self.kill()
                 raise WebDriverException("Can't load the profile. Profile "
                       "Dir: %s If you specified a log_file in the "
-                      "FirefoxBinary constructor, check it for details.")
+                      "FirefoxBinary constructor, check it for details."
+                      % (self.profile.path))
             count += 1
             time.sleep(1)
         return True
@@ -142,7 +143,10 @@ class FirefoxBinary(object):
         """Return the command to start firefox."""
         start_cmd = ""
         if platform.system() == "Darwin":
-            start_cmd = ("/Applications/Firefox.app/Contents/MacOS/firefox-bin")
+            start_cmd = "/Applications/Firefox.app/Contents/MacOS/firefox-bin"
+            # fallback to homebrew installation for mac users
+            if not os.path.exists(start_cmd):
+                start_cmd = os.path.expanduser("~") + start_cmd
         elif platform.system() == "Windows":
             start_cmd = (self._find_exe_in_registry() or
                 self._default_windows_location())
@@ -185,7 +189,8 @@ class FirefoxBinary(object):
         built_path = ""
         for path in paths:
             library_path = os.path.join(profile.path, path)
-            os.makedirs(library_path)
+            if not os.path.exists(library_path):
+                os.makedirs(library_path)
             import shutil
             shutil.copy(os.path.join(os.path.dirname(__file__), path,
               self.NO_FOCUS_LIBRARY_NAME),

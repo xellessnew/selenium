@@ -130,7 +130,6 @@ public class FormHandlingTest extends JUnit4TestBase {
     assertTrue(driver.getCurrentUrl().endsWith("?x=name"));
   }
 
-  @Ignore({MARIONETTE})
   @Test
   public void testShouldSubmitAFormUsingTheEnterKey() {
     driver.get(pages.formPage);
@@ -263,7 +262,7 @@ public class FormHandlingTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(value = {PHANTOMJS, SAFARI, MARIONETTE, HTMLUNIT},
+  @Ignore(value = {PHANTOMJS, SAFARI, HTMLUNIT, MARIONETTE},
           reason = "HtmlUnit: error; others: untested")
   public void handleFormWithJavascriptAction() {
     String url = appServer.whereIs("form_handling_js_submit.html");

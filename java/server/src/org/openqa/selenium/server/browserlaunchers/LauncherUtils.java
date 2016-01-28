@@ -46,7 +46,7 @@ public class LauncherUtils {
 
   static Logger log = Logger.getLogger(LauncherUtils.class.getName());
 
-  /**
+  /*
    * creates an empty temp directory for managing a browser profile
    */
   // TODO(simon): Change this back to protected once moved into browserlaunchers
@@ -64,7 +64,7 @@ public class LauncherUtils {
   /**
    * Return the name of the custom profile directory for a specific seleniumm session
    *
-   * @param sessionId Current selenium sesssion id. Cannot be null.
+   * @param sessionId Current selenium session id. Cannot be null.
    * @return file path of the custom profile directory for this session.
    */
   public static File customProfileDir(String sessionId) {
@@ -82,6 +82,8 @@ public class LauncherUtils {
 
   /**
    * Try several times to recursively delete a directory
+   * @param dir directory to delete
+   * @param tries number of retries to attempt
    */
   public static void deleteTryTryAgain(File dir, int tries) {
     try {
@@ -218,13 +220,14 @@ public class LauncherUtils {
 
   /**
    * Copies all files matching the suffix to the destination directory.
-   * <p/>
+   * <p>
    * If no files match, and the destination directory did not already exist, the destination
    * directory is still created, if possible.
    *
    * @param source the source directory
    * @param suffix the suffix for all files to be copied.
    * @param dest the destination directory
+   * @return true if successful
    */
   protected static boolean copyDirectory(File source, String suffix, File dest) {
     try {
@@ -278,6 +281,7 @@ public class LauncherUtils {
       // for Firefox 2.0
       out.println("user_pref('browser.startup.homepage', '" + homePage + "');");
       out.println("user_pref('startup.homepage_welcome_url', '');");
+      out.println("user_pref('startup.homepage_welcome_url.additional', '');");
 
       // This handles known RC problems when the startup page is a blank page or when the previous
       // session has been restored
@@ -302,6 +306,7 @@ public class LauncherUtils {
 
     //Allow extensions to be installed into the profile and still work
     out.println("user_pref('extensions.autoDisableScopes', 10);");
+    out.println("user_pref('xpinstall.signatures.required', false);");
 
     // Disable "do you want to remember this password?"
     out.println("user_pref('signon.rememberSignons', false);");

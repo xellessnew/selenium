@@ -1,4 +1,5 @@
 java_library(name = 'firefox',
+  maven_coords = 'org.seleniumhq.selenium:selenium-firefox-driver:jar:2.49.0',
   srcs = glob(['*.java', 'internal/*.java']),
   resources = [
     ':prefs',
@@ -11,7 +12,8 @@ java_library(name = 'firefox',
     '//java/client/src/org/openqa/selenium/net:net',
     '//java/client/src/org/openqa/selenium/os:os',
     '//java/client/src/org/openqa/selenium/remote:remote',
-    '//third_party/java/guava-libraries:guava-libraries',
+    '//java/client/src/org/openqa/selenium/remote/service:service',
+    '//third_party/java/guava:guava',
   ],
   visibility = [ 'PUBLIC' ],
 )

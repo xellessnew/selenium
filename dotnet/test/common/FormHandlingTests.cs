@@ -14,7 +14,7 @@ namespace OpenQA.Selenium
         {
             driver.Url = formsPage;
             driver.FindElement(By.Id("submitButton")).Click();
-            WaitFor(TitleToBe("We Arrive Here"));
+            WaitFor(TitleToBe("We Arrive Here"), "Browser title is not 'We Arrive Here'");
             Assert.AreEqual(driver.Title, "We Arrive Here");
         }
 
@@ -30,7 +30,7 @@ namespace OpenQA.Selenium
         {
             driver.Url = formsPage;
             driver.FindElement(By.Id("imageButton")).Click();
-            WaitFor(TitleToBe("We Arrive Here"));
+            WaitFor(TitleToBe("We Arrive Here"), "Browser title is not 'We Arrive Here'");
             Assert.AreEqual(driver.Title, "We Arrive Here");
         }
 
@@ -39,7 +39,7 @@ namespace OpenQA.Selenium
         {
             driver.Url = formsPage;
             driver.FindElement(By.Name("login")).Submit();
-            WaitFor(TitleToBe("We Arrive Here"));
+            WaitFor(TitleToBe("We Arrive Here"), "Browser title is not 'We Arrive Here'");
             Assert.AreEqual(driver.Title, "We Arrive Here");
         }
 
@@ -48,7 +48,7 @@ namespace OpenQA.Selenium
         {
             driver.Url = formsPage;
             driver.FindElement(By.Id("checky")).Submit();
-            WaitFor(TitleToBe("We Arrive Here"));
+            WaitFor(TitleToBe("We Arrive Here"), "Browser title is not 'We Arrive Here'");
             Assert.AreEqual(driver.Title, "We Arrive Here");
         }
 
@@ -57,7 +57,7 @@ namespace OpenQA.Selenium
         {
             driver.Url = formsPage;
             driver.FindElement(By.XPath("//form/p")).Submit();
-            WaitFor(TitleToBe("We Arrive Here"));
+            WaitFor(TitleToBe("We Arrive Here"), "Browser title is not 'We Arrive Here'");
             Assert.AreEqual(driver.Title, "We Arrive Here");
         }
 
@@ -68,11 +68,10 @@ namespace OpenQA.Selenium
         [IgnoreBrowser(Browser.Opera)]
         [IgnoreBrowser(Browser.PhantomJS)]
         [IgnoreBrowser(Browser.Safari)]
-        [ExpectedException(typeof(NoSuchElementException))]
         public void ShouldNotBeAbleToSubmitAFormThatDoesNotExist()
         {
             driver.Url = formsPage;
-            driver.FindElement(By.Name("SearchableText")).Submit();
+            Assert.Throws<NoSuchElementException>(() => driver.FindElement(By.Name("SearchableText")).Submit());
         }
 
         [Test]
@@ -103,7 +102,7 @@ namespace OpenQA.Selenium
             IWebElement input = nestedForm.FindElement(By.Name("x"));
             input.SendKeys("\n");
 
-            WaitFor(TitleToBe("We Arrive Here"));
+            WaitFor(TitleToBe("We Arrive Here"), "Browser title is not 'We Arrive Here'");
             Assert.AreEqual("We Arrive Here", driver.Title);
             Assert.IsTrue(driver.Url.EndsWith("?x=name"));
         }
@@ -116,7 +115,7 @@ namespace OpenQA.Selenium
             IWebElement input = nestedForm.FindElement(By.Name("x"));
             input.SendKeys(Keys.Enter);
 
-            WaitFor(TitleToBe("We Arrive Here"));
+            WaitFor(TitleToBe("We Arrive Here"), "Browser title is not 'We Arrive Here'");
             Assert.AreEqual("We Arrive Here", driver.Title);
             Assert.IsTrue(driver.Url.EndsWith("?x=name"));
         }
@@ -366,7 +365,7 @@ namespace OpenQA.Selenium
             driver.FindElement(By.Id("name")).SendKeys(name);
             driver.FindElement(By.Id(buttonId)).Click();
 
-            WaitFor(TitleToBe("Submitted Successfully!"));
+            WaitFor(TitleToBe("Submitted Successfully!"), "Browser title is not 'Submitted Successfully!'");
 
             Assert.That(driver.Url.Contains("name=" + name), "URL does not contain 'name=" + name + "'. Actual URL:" + driver.Url);
         }

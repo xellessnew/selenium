@@ -25,7 +25,7 @@
     <orderEntry type="library" scope="RUNTIME" name="commons-lang" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="commons-logging" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="cssparser" level="project" />
-    <orderEntry type="library" exported="" name="guava-libraries" level="project" />
+    <orderEntry type="library" exported="" name="guava" level="project" />
     <orderEntry type="library" exported="" name="gson" level="project" />
     <orderEntry type="library" name="hamcrest" level="project" />
     <orderEntry type="library" name="htmlunit" level="project" />
@@ -41,7 +41,7 @@
     <orderEntry type="library" name="sac" level="project" />
     <orderEntry type="library" scope="TEST" name="dnsjava" level="project" />
     <orderEntry type="library" scope="TEST" name="dnssec4j" level="project" />
-    <orderEntry type="library" scope="TEST" name="jetty" level="project" />
+    <orderEntry type="library" name="jetty" level="project" />
     <orderEntry type="library" scope="TEST" name="little_proxy" level="project" />
     <orderEntry type="library" scope="TEST" name="slf4j" level="project" />
     <orderEntry type="library" name="mockito-core-1.9.5-srcs" level="project" />

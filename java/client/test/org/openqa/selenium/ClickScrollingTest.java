@@ -133,7 +133,6 @@ public class ClickScrollingTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(MARIONETTE)
   public void testShouldBeAbleToClickRadioButtonScrolledIntoView() {
     driver.get(appServer.whereIs("scroll4.html"));
     driver.findElement(By.id("radio")).click();
@@ -217,6 +216,7 @@ public class ClickScrollingTest extends JUnit4TestBase {
 
   @JavascriptEnabled
   @Test
+  @Ignore(value = {MARIONETTE}, reason = "getSize issue https://bugzilla.mozilla.org/show_bug.cgi?id=1199925")
   public void testShouldNotScrollWhenGettingElementSize() {
     driver.get(appServer.whereIs("scroll3.html"));
     long scrollTop = getScrollTop();
@@ -238,5 +238,4 @@ public class ClickScrollingTest extends JUnit4TestBase {
     element.click();
     assertTrue(element.isSelected());
   }
-
 }

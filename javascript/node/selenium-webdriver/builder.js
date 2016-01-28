@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-var base = require('./_base'),
+var base = require('./lib/_base'),
     executors = require('./executors');
 
 // Use base.require to avoid circular references between index and this module.
@@ -112,6 +112,9 @@ var Builder = function() {
 
   /** @private {ie.Options} */
   this.ieOptions_ = null;
+
+  /** @private {edge.Options} */
+  this.edgeOptions_ = null;
 
   /** @private {safari.Options} */
   this.safariOptions_ = null;
@@ -246,7 +249,7 @@ Builder.prototype.setProxy = function(config) {
 /**
  * Sets the logging preferences for the created session. Preferences may be
  * changed by repeated calls, or by calling {@link #withCapabilities}.
- * @param {!(webdriver.logging.Preferences|Object.<string, string>)} prefs The
+ * @param {!(./lib/logging.Preferences|Object<string, string>)} prefs The
  *     desired logging preferences.
  * @return {!Builder} A self reference.
  */
@@ -338,7 +341,7 @@ Builder.prototype.setOperaOptions = function(options) {
 
 
 /**
- * Sets Internet Explorer specific
+ * Sets Microsoft's Internet Explorer specific
  * {@linkplain selenium-webdriver/ie.Options options} for drivers created by
  * this builder. Any proxy settings defined on the given options will take
  * precedence over those set through {@link #setProxy}.
@@ -351,6 +354,19 @@ Builder.prototype.setIeOptions = function(options) {
   return this;
 };
 
+/**
+ * Sets Microsoft's Edge specific
+ * {@linkplain selenium-webdriver/edge.Options options} for drivers created by
+ * this builder. Any proxy settings defined on the given options will take
+ * precedence over those set through {@link #setProxy}.
+ *
+ * @param {!edge.Options} options The MicrosoftEdgeDriver options to use.
+ * @return {!Builder} A self reference.
+ */
+Builder.prototype.setEdgeOptions = function(options) {
+  this.edgeOptions_ = options;
+  return this;
+};
 
 /**
  * Sets Safari specific {@linkplain selenium-webdriver/safari.Options options}
@@ -428,6 +444,9 @@ Builder.prototype.build = function() {
 
   } else if (browser === Browser.SAFARI && this.safariOptions_) {
     capabilities.merge(this.safariOptions_.toCapabilities());
+
+  } else if (browser === Browser.EDGE && this.edgeOptions_) {
+    capabilities.merge(this.edgeOptions_.toCapabilities());
   }
 
   // Check for a remote browser.
@@ -464,6 +483,12 @@ Builder.prototype.build = function() {
       // index -> builder -> ie -> index
       var ie = require('./ie');
       return new ie.Driver(capabilities, this.flow_);
+
+    case Browser.EDGE:
+      // Requiring 'edge' above would create a cycle:
+      // index -> builder -> edge -> index
+      var edge = require('./edge');
+      return new edge.Driver(capabilities, null, this.flow_);
 
     case Browser.OPERA:
       // Requiring 'opera' would create a cycle:

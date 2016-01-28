@@ -112,6 +112,12 @@ public class JsonToBeanConverter {
                         ? (JsonObject) source
                         : new JsonParser().parse((String) source).getAsJsonObject();
 
+      if (json.has("error") && ! json.get("error").isJsonNull()) {
+        String state = json.get("error").getAsString();
+        response.setState(state);
+        response.setStatus(ErrorCodes.toStatus(state));
+        response.setValue(convert(Object.class, json.get("message")));
+      }
       if (json.has("state") && ! json.get("state").isJsonNull()) {
         String state = json.get("state").getAsString();
         response.setState(state);
@@ -133,7 +139,11 @@ public class JsonToBeanConverter {
         response.setSessionId(json.get("sessionId").getAsString());
       }
 
-      response.setValue(convert(Object.class, json.get("value")));
+      if (json.has("value")) {
+        response.setValue(convert(Object.class, json.get("value")));
+      } else {
+        response.setValue(convert(Object.class, json));
+      }
 
       return (T) response;
     }

@@ -89,6 +89,11 @@ class WebDriver(object):
         self._mobile = Mobile(self)
         self.file_detector = LocalFileDetector()
 
+    def __repr__(self):
+        return '<{0.__module__}.{0.__name__} (session="{1}")>'.format(
+            type(self), self.session_id)
+
+
     @property
     def mobile(self):
         return self._mobile
@@ -139,7 +144,7 @@ class WebDriver(object):
         self.capabilities = response['value']
 
         # Quick check to see if we have a W3C Compliant browser
-        self.w3c = "takesElementScreenshot" in self.capabilities
+        self.w3c = "specificationLevel" in self.capabilities
 
     def _wrap_value(self, value):
         if isinstance(value, dict):

@@ -16,6 +16,7 @@
 # under the License.
 
 import hashlib
+from numbers import Number
 import os
 import zipfile
 try:
@@ -54,6 +55,11 @@ class WebElement(object):
         self._id = id_
         self._w3c = w3c
 
+    def __repr__(self):
+        return '<{0.__module__}.{0.__name__} (session="{1}", element="{2}")>'.format(
+            type(self), self._parent.session_id, self._id)
+
+
     @property
     def tag_name(self):
         """This element's ``tagName`` property."""
@@ -70,7 +76,13 @@ class WebElement(object):
 
     def submit(self):
         """Submits a form."""
-        self._execute(Command.SUBMIT_ELEMENT)
+        if self._w3c:
+            form = self.find_element(By.XPATH, "./ancestor-or-self::form")
+            self._parent.execute_script("var e = arguments[0].ownerDocument.createEvent('Event');"
+                                       "e.initEvent('submit', true, true);"
+                                       "if (arguments[0].dispatchEvent(e)) { arguments[0].submit() }", form)
+        else:
+            self._execute(Command.SUBMIT_ELEMENT)
 
     def clear(self):
         """Clears the text if it's a text entry element."""
@@ -312,7 +324,7 @@ class WebElement(object):
         for val in value:
             if isinstance(val, Keys):
                 typing.append(val)
-            elif isinstance(val, int):
+            elif isinstance(val, Number):
                 val = val.__str__()
                 for i in range(len(val)):
                     typing.append(val[i])

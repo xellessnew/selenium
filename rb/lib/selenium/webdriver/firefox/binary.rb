@@ -149,6 +149,19 @@ module Selenium
             @path
           end
 
+          def version
+            @version = case Platform.os
+                         when :macosx
+                           `#{path} -v`.strip[/[^\s]*$/][/^\d+/].to_i
+                         when :windows
+                           `\"#{path}\" -v | more`.strip[/[^\s]*$/][/^\d+/].to_i
+                         when :linux
+                           `#{path} -v`.strip[/[^\s]*$/][/^\d+/].to_i
+                         else
+                           0
+                         end
+          end
+
           private
 
           def windows_path
@@ -157,6 +170,7 @@ module Selenium
 
           def macosx_path
             path = "/Applications/Firefox.app/Contents/MacOS/firefox-bin"
+            path = File.expand_path("~/Applications/Firefox.app/Contents/MacOS/firefox-bin") unless File.exist?(path)
             path = Platform.find_binary("firefox-bin") unless File.exist?(path)
 
             path

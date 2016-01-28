@@ -99,9 +99,16 @@ class ErrorHandler(object):
             value_json = response.get('value', None)
             if value_json and isinstance(value_json, basestring):
                 import json
-                value = json.loads(value_json)
-                status = value['status']
-                message = value['message']
+                try:
+                  value = json.loads(value_json)
+                  status = value.get('error', None)
+                  if status is None:
+                      status = value["status"]
+                      message = value["value"]["message"]
+                  else:
+                      message = value.get('message', None)
+                except ValueError:
+                  pass
 
         exception_class = ErrorInResponseException
         if status in ErrorCode.NO_SUCH_ELEMENT:
@@ -144,13 +151,13 @@ class ErrorHandler(object):
             exception_class = MoveTargetOutOfBoundsException
         else:
             exception_class = WebDriverException
-        value = response['value']
+        if value == '' or value is None:
+            value = response['value']
         if isinstance(value, basestring):
             if exception_class == ErrorInResponseException:
                 raise exception_class(response, value)
             raise exception_class(value)
-        message = ''
-        if 'message' in value:
+        if message != "" and 'message' in value:
             message = value['message']
 
         screen = None
