@@ -273,7 +273,7 @@ SyntheticMouse.prototype.click = function(target) {
   // No need to unwrap the target. All information is provided by the wrapped
   // version, and unwrapping does not work for all firefox versions.
   var element = target ? target : this.lastElement;
-  var error = this.isElementShownAndClickable(element);
+  var error = this.isElementShown(element);
   if (error) {
     return error;
   }
@@ -316,7 +316,7 @@ SyntheticMouse.prototype.contextClick = function(target) {
   // No need to unwrap the target. All information is provided by the wrapped
   // version, and unwrapping does not work for all firefox versions.
   var element = target ? target : this.lastElement;
-  var error = this.isElementShownAndClickable(element);
+  var error = this.isElementShown(element);
   if (error) {
     return error;
   }
@@ -335,7 +335,7 @@ SyntheticMouse.prototype.doubleClick = function(target) {
       'SyntheticMouse.doubleClick ' + target);
 
   var element = target ? target : this.lastElement;
-  var error = this.isElementShownAndClickable(element);
+  var error = this.isElementShown(element);
   if (error) {
     return error;
   }
