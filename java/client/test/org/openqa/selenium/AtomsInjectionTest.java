@@ -23,7 +23,7 @@ import org.openqa.selenium.testing.JavascriptEnabled;
 import org.openqa.selenium.testing.NotYetImplemented;
 
 import static org.junit.Assert.assertEquals;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
 
 public class AtomsInjectionTest extends JUnit4TestBase {
 

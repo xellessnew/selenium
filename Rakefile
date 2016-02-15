@@ -50,7 +50,7 @@ end
 verbose($DEBUG)
 
 def version
-  "2.50.0"
+  "2.52.0"
 end
 ide_version = "2.8.0"
 
@@ -677,17 +677,7 @@ namespace :node do
     "//cpp:noblur64",
     "//javascript/firefox-driver:webdriver",
     "//javascript/safari-driver:client",
-    "//javascript/webdriver:asserts_lib",
-    "//javascript/webdriver:webdriver_lib",
-    "//javascript/webdriver:unit_test_lib"
   ] do
-    js = Javascript::BaseJs.new
-    # Get JS lib deps, excluding those need to build the FirefoxDriver.
-    deps = js.build_deps("", Rake::Task["//javascript/webdriver:asserts_lib"], [])
-    deps = js.build_deps("", Rake::Task["//javascript/webdriver:webdriver_lib"], deps)
-    deps = js.build_deps("", Rake::Task["//javascript/webdriver:unit_test_lib"], deps)
-    deps.uniq!
-
     cmd =  "node javascript/node/deploy.js" <<
         " --output=build/javascript/node/selenium-webdriver" <<
         " --resource=LICENSE:/LICENSE" <<
@@ -697,17 +687,16 @@ namespace :node do
         " --resource=build/cpp/i386/libnoblur.so:firefox/i386/libnoblur.so" <<
         " --resource=build/javascript/firefox-driver/webdriver.xpi:firefox/webdriver.xpi" <<
         " --resource=build/javascript/safari-driver/client.js:safari/client.js" <<
-        " --resource=third_party/closure/LICENSE:goog/LICENSE" <<
         " --resource=common/src/web/:test/data/" <<
         " --exclude_resource=common/src/web/Bin" <<
         " --exclude_resource=.gitignore" <<
-        " --root=javascript" <<
-        " --root=third_party/closure" <<
-        " --lib=third_party/closure/goog" <<
-        " --lib=" << deps.join(" --lib=") <<
         " --src=javascript/node/selenium-webdriver"
 
     sh cmd
+  end
+
+  task :docs do
+    sh "node javascript/node/gendocs.js"
   end
 end
 

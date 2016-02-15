@@ -26,11 +26,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.PHANTOMJS;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.isIe6;
 import static org.openqa.selenium.testing.TestUtilities.isIe7;
 
@@ -232,7 +232,6 @@ public class FormHandlingTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(MARIONETTE)
   public void testSendingKeyboardEventsShouldAppendTextInInputsWithExistingValue() {
     driver.get(pages.formPage);
     WebElement element = driver.findElement(By.id("inputWithText"));
@@ -243,7 +242,6 @@ public class FormHandlingTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(MARIONETTE)
   public void testSendingKeyboardEventsShouldAppendTextInTextAreas() {
     driver.get(pages.formPage);
     WebElement element = driver.findElement(By.id("withText"));
@@ -280,6 +278,13 @@ public class FormHandlingTest extends JUnit4TestBase {
   @Test
   public void testCanClickOnASubmitButton() {
     checkSubmitButton("internal_explicit_submit");
+  }
+
+
+  @Ignore(value = {SAFARI}, reason = "untested")
+  @Test
+  public void testCanClickOnASubmitButtonNestedSpan() {
+    checkSubmitButton("internal_span_submit");
   }
 
   @Ignore(value = {SAFARI}, reason = "untested")

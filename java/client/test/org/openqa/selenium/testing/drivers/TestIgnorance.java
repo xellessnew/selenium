@@ -20,15 +20,15 @@ package org.openqa.selenium.testing.drivers;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.openqa.selenium.Platform.LINUX;
 import static org.openqa.selenium.Platform.WINDOWS;
-import static org.openqa.selenium.testing.Ignore.Driver.ALL;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
-import static org.openqa.selenium.testing.Ignore.Driver.REMOTE;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.ALL;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.FIREFOX;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.PHANTOMJS;
+import static org.openqa.selenium.testing.Driver.REMOTE;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.drivers.Browser.chrome;
 import static org.openqa.selenium.testing.drivers.Browser.htmlunit;
 import static org.openqa.selenium.testing.drivers.Browser.htmlunit_js;
@@ -39,7 +39,7 @@ import static org.openqa.selenium.testing.drivers.Browser.phantomjs;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import org.junit.runners.model.FrameworkMethod;
+import org.junit.runner.Description;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JavascriptEnabled;
@@ -88,26 +88,25 @@ public class TestIgnorance {
     }
   }
 
-  // JUnit 4
-  public boolean isIgnored(FrameworkMethod method, Object test) {
-    boolean ignored = ignoreComparator.shouldIgnore(test.getClass().getAnnotation(Ignore.class)) ||
-                      ignoreComparator.shouldIgnore(method.getMethod().getAnnotation(Ignore.class));
+  public boolean isIgnored(Description method) {
+    boolean ignored = ignoreComparator.shouldIgnore(method.getTestClass().getAnnotation(Ignore.class)) ||
+                      ignoreComparator.shouldIgnore(method.getAnnotation(Ignore.class));
 
-    ignored |= isIgnoredBecauseOfJUnit4Ignore(test.getClass().getAnnotation(org.junit.Ignore.class));
-    ignored |= isIgnoredBecauseOfJUnit4Ignore(method.getMethod().getAnnotation(org.junit.Ignore.class));
+    ignored |= isIgnoredBecauseOfJUnit4Ignore(method.getTestClass().getAnnotation(org.junit.Ignore.class));
+    ignored |= isIgnoredBecauseOfJUnit4Ignore(method.getAnnotation(org.junit.Ignore.class));
     if (Boolean.getBoolean("ignored_only")) {
       ignored = !ignored;
     }
 
-    ignored |= isIgnoredDueToJavascript(test.getClass().getAnnotation(JavascriptEnabled.class));
-    ignored |= isIgnoredDueToJavascript(method.getMethod().getAnnotation(JavascriptEnabled.class));
+    ignored |= isIgnoredDueToJavascript(method.getTestClass().getAnnotation(JavascriptEnabled.class));
+    ignored |= isIgnoredDueToJavascript(method.getAnnotation(JavascriptEnabled.class));
 
-    ignored |= isIgnoredBecauseOfNativeEvents(test.getClass().getAnnotation(NativeEventsRequired.class));
-    ignored |= isIgnoredBecauseOfNativeEvents(method.getMethod().getAnnotation(NativeEventsRequired.class));
+    ignored |= isIgnoredBecauseOfNativeEvents(method.getTestClass().getAnnotation(NativeEventsRequired.class));
+    ignored |= isIgnoredBecauseOfNativeEvents(method.getAnnotation(NativeEventsRequired.class));
 
-    ignored |= isIgnoredDueToEnvironmentVariables(method, test);
+    ignored |= isIgnoredDueToEnvironmentVariables(method);
 
-    ignored |= isIgnoredDueToBeingOnSauce(method, test);
+    ignored |= isIgnoredDueToBeingOnSauce(method);
 
     return ignored;
   }
@@ -146,9 +145,9 @@ public class TestIgnorance {
     return Platform.getCurrent();
   }
 
-  private boolean isIgnoredDueToBeingOnSauce(FrameworkMethod method, Object test) {
-    boolean isLocal = method.getMethod().getAnnotation(NeedsLocalEnvironment.class) != null
-                      || test.getClass().getAnnotation(NeedsLocalEnvironment.class) != null;
+  private boolean isIgnoredDueToBeingOnSauce(Description method) {
+    boolean isLocal = method.getAnnotation(NeedsLocalEnvironment.class) != null
+                      || method.getTestClass().getAnnotation(NeedsLocalEnvironment.class) != null;
     if (SauceDriver.shouldUseSauce()) {
       return isLocal;
     } else {
@@ -160,11 +159,11 @@ public class TestIgnorance {
     return enabled != null && !browser.isJavascriptEnabled();
   }
 
-  private boolean isIgnoredDueToEnvironmentVariables(FrameworkMethod method, Object test) {
-    return (!only.isEmpty() && !only.contains(test.getClass().getSimpleName())) ||
-           (!methods.isEmpty() && !methods.contains(method.getName())) ||
-           ignoreClasses.contains(test.getClass().getSimpleName()) ||
-           ignoreMethods.contains(method.getName());
+  private boolean isIgnoredDueToEnvironmentVariables(Description method) {
+    return (!only.isEmpty() && !only.contains(method.getTestClass().getSimpleName())) ||
+           (!methods.isEmpty() && !methods.contains(method.getMethodName())) ||
+           ignoreClasses.contains(method.getTestClass().getSimpleName()) ||
+           ignoreMethods.contains(method.getMethodName());
   }
 
   public void setBrowser(Browser browser) {

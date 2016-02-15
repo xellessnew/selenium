@@ -22,7 +22,7 @@
  * WebDriver session.
  */
 
-const serializable = require('./serializable');
+const Symbols = require('./symbols');
 
 
 /**
@@ -32,6 +32,7 @@ const serializable = require('./serializable');
 const Browser = {
   ANDROID: 'android',
   CHROME: 'chrome',
+  EDGE: 'MicrosoftEdge',
   FIREFOX: 'firefox',
   IE: 'internet explorer',
   INTERNET_EXPLORER: 'internet explorer',
@@ -172,8 +173,6 @@ function toMap(hash) {
 
 /**
  * Describes a set of capabilities for a WebDriver session.
- *
- * @implements {serializable.Serializable<!Object<string, ?>>}
  */
 class Capabilities extends Map {
   /**
@@ -201,6 +200,15 @@ class Capabilities extends Map {
    */
   static chrome() {
     return new Capabilities().set(Capability.BROWSER_NAME, Browser.CHROME);
+  }
+
+  /**
+   * @return {!Capabilities} A basic set of capabilities for Microsoft Edge.
+   */
+  static edge() {
+    return new Capabilities()
+        .set(Capability.BROWSER_NAME, Browser.EDGE)
+        .set(Capability.PLATFORM, 'WINDOWS');
   }
 
   /**
@@ -283,12 +291,14 @@ class Capabilities extends Map {
   /**
    * @return {!Object<string, ?>} The JSON representation of this instance.
    *     Note, the returned object may contain nested promised values.
-   * @override
    */
-  serialize() {
+  [Symbols.serialize]() {
     let ret = {};
     for (let key of this.keys()) {
-      ret[key] = this.get(key);
+      let cap = this.get(key);
+      if (cap) {
+        ret[key] = cap;
+      }
     }
     return ret;
   }
@@ -381,7 +391,6 @@ class Capabilities extends Map {
     return this.set(Capability.UNEXPECTED_ALERT_BEHAVIOR, behavior);
   }
 }
-serializable.setSerializable(Capabilities);
 
 
 // PUBLIC API

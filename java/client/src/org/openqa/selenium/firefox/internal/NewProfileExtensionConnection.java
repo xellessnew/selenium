@@ -32,7 +32,7 @@ import org.openqa.selenium.net.NetworkUtils;
 import org.openqa.selenium.remote.Command;
 import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.Response;
-import org.openqa.selenium.remote.internal.CircularOutputStream;
+import org.openqa.selenium.io.CircularOutputStream;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,16 +47,6 @@ import static org.openqa.selenium.firefox.FirefoxProfile.PORT_PREFERENCE;
 import static org.openqa.selenium.internal.SocketLock.DEFAULT_PORT;
 
 public class NewProfileExtensionConnection implements ExtensionConnection, NeedsLocalLogs {
-
-  /**
-   * System property that defines the location of the webdriver.xpi browser extension to install
-   * in the browser. If not set, the prebuilt extension bundled with this class will be used
-   * instead.
-   *
-   * @deprecated Use FirefoxDriver.SystemProperty.DRIVER_XPI_PROPERTY instead
-   */
-  @Deprecated
-  public static final String FIREFOX_DRIVER_XPI_PROPERTY = FirefoxDriver.SystemProperty.DRIVER_XPI_PROPERTY;
 
   private final static int BUFFER_SIZE = 4096;
 

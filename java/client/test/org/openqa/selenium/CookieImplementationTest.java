@@ -23,7 +23,7 @@ import org.openqa.selenium.environment.DomainHelper;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.JavascriptEnabled;
-import org.openqa.selenium.testing.NotYetImplemented;
+import org.openqa.selenium.testing.SwitchToTopAfterTest;
 
 import java.net.URI;
 import java.util.Date;
@@ -40,15 +40,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
-import static org.openqa.selenium.testing.Ignore.Driver.ALL;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
-import static org.openqa.selenium.testing.Ignore.Driver.REMOTE;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.ALL;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.FIREFOX;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.PHANTOMJS;
+import static org.openqa.selenium.testing.Driver.REMOTE;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 
 public class CookieImplementationTest extends JUnit4TestBase {
 
@@ -210,7 +208,7 @@ public class CookieImplementationTest extends JUnit4TestBase {
   }
 
   @Ignore(value = {CHROME, PHANTOMJS, SAFARI})
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   public void testGetCookiesInAFrame() {
     driver.get(domainHelper.getUrlForFirstValidHostname("/common/animals"));
@@ -236,7 +234,6 @@ public class CookieImplementationTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(MARIONETTE)
   public void testShouldNotGetCookieOnDifferentDomain() {
     assumeTrue(domainHelper.checkHasValidAlternateHostname());
 
@@ -371,7 +368,6 @@ public class CookieImplementationTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(MARIONETTE)
   public void testRetainsCookieExpiry() {
     Cookie addedCookie =
         new Cookie.Builder("fish", "cod")
@@ -385,7 +381,7 @@ public class CookieImplementationTest extends JUnit4TestBase {
     assertEquals(addedCookie.getExpiry(), retrieved.getExpiry());
   }
 
-  @Ignore(value = {IE, PHANTOMJS, SAFARI, MARIONETTE})
+  @Ignore(value = {IE, PHANTOMJS, SAFARI})
   @Test
   public void canHandleSecureCookie() {
     driver.get(domainHelper.getSecureUrlForFirstValidHostname("animals"));
@@ -403,7 +399,7 @@ public class CookieImplementationTest extends JUnit4TestBase {
     assertNotNull(retrieved);
   }
 
-  @Ignore(value = {IE, PHANTOMJS, SAFARI, MARIONETTE})
+  @Ignore(value = {IE, PHANTOMJS, SAFARI})
   @Test
   public void testRetainsCookieSecure() {
     driver.get(domainHelper.getSecureUrlForFirstValidHostname("animals"));
@@ -438,7 +434,7 @@ public class CookieImplementationTest extends JUnit4TestBase {
     assertNotNull(retrieved);
   }
 
-  @Ignore(reason = "Needs jetty upgrade (servlet api 3)")
+  @Ignore({CHROME, SAFARI})
   @Test
   public void testRetainsHttpOnlyFlag() {
     Cookie addedCookie =
@@ -486,7 +482,7 @@ public class CookieImplementationTest extends JUnit4TestBase {
     driver.manage().deleteCookieNamed(key);
   }
 
-  @Ignore(value = {CHROME, FIREFOX, IE, PHANTOMJS, SAFARI, MARIONETTE})
+  @Ignore(value = {CHROME, FIREFOX, IE, PHANTOMJS, SAFARI})
   @Test
   public void testShouldDeleteOneOfTheCookiesWithTheSameName() {
     driver.get(domainHelper.getUrlForFirstValidHostname("/common/animals"));
@@ -609,7 +605,6 @@ public class CookieImplementationTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(MARIONETTE)
   public void deleteAllCookies() throws Exception {
     assumeTrue(domainHelper.checkHasValidAlternateHostname());
 

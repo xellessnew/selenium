@@ -31,12 +31,12 @@ import static org.openqa.selenium.WaitingConditions.elementTextToContain;
 import static org.openqa.selenium.WaitingConditions.elementTextToEqual;
 import static org.openqa.selenium.WaitingConditions.elementValueToEqual;
 import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.FIREFOX;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.isOldIe;
 
 import org.junit.Test;
@@ -424,9 +424,33 @@ public class CorrectEventFiringTest extends JUnit4TestBase {
     try {
       driver.findElement(By.id("under")).click();
     } catch (WebDriverException expected) {
-      return;
+      if (expected.getMessage().contains("Other element would receive the click")) {
+        return;
+      }
+      expected.printStackTrace();
     }
-    fail("Should throw");
+    fail("Should have thrown Exception with 'Other element would receive the click' in the message");
+  }
+
+  @JavascriptEnabled
+  @Ignore(value = {CHROME, IE, MARIONETTE, SAFARI, HTMLUNIT})
+  @Test
+  public void testClickPartiallyOverlappingElements() {
+    assumeFalse(isOldIe(driver));
+    for (int i = 1; i < 6; i++) {
+      driver.get(appServer.whereIs("click_tests/partially_overlapping_elements.html"));
+      WebElement over = driver.findElement(By.id("over" + i));
+      ((JavascriptExecutor) driver).executeScript("arguments[0].style.display = 'none'", over);
+      driver.findElement(By.id("under")).click();
+      assertEquals(driver.findElement(By.id("log")).getText(),
+                   "Log:\n"
+                   + "mousedown in under (handled by under)\n"
+                   + "mousedown in under (handled by body)\n"
+                   + "mouseup in under (handled by under)\n"
+                   + "mouseup in under (handled by body)\n"
+                   + "click in under (handled by under)\n"
+                   + "click in under (handled by body)");
+    }
   }
 
   @JavascriptEnabled

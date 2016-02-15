@@ -24,22 +24,22 @@ import static org.openqa.selenium.WaitingConditions.elementTextToEqual;
 import static org.openqa.selenium.WaitingConditions.elementValueToEqual;
 import static org.openqa.selenium.support.ui.ExpectedConditions.not;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.REMOTE;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.FIREFOX;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.REMOTE;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.NeedsFreshDriver;
-import org.openqa.selenium.NoDriverAfterTest;
+import org.openqa.selenium.testing.NeedsFreshDriver;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.testing.SwitchToTopAfterTest;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.Color;
@@ -259,7 +259,7 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
     }
   }
 
-  @Ignore(value = {FIREFOX, IE, REMOTE},
+  @Ignore(value = {FIREFOX, IE, REMOTE, CHROME},
           reason = "Behaviour not finalized yet regarding linked images.")
   @NotYetImplemented(HTMLUNIT)
   @Test
@@ -314,7 +314,7 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
     wait.until(elementTextToEqual(resultArea, expectedEvents));
   }
 
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   public void testShouldClickElementInIFrame() {
     driver.get(pages.clicksPage);
@@ -431,7 +431,7 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
   }
 
   @JavascriptEnabled
-  @NeedsFreshDriver
+  @NeedsFreshDriver({IE, CHROME})
   @Ignore(value = {SAFARI, MARIONETTE},
           reason = "Advanced mouse actions only implemented in rendered browsers",
           issues = {4136})
@@ -453,11 +453,8 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
 
   @JavascriptEnabled
   @Test
-  @Ignore(value = {SAFARI, MARIONETTE},
-    reason = "Advanced mouse actions only implemented in rendered browsers",
-    issues = {4136})
+  @Ignore(value = {SAFARI, MARIONETTE}, issues = {4136})
   @NotYetImplemented(HTMLUNIT)
-  //@NoDriverAfterTest
   public void testMoveMouseByOffsetOverAndOutOfAnElement() {
     driver.get(pages.mouseOverPage);
 
@@ -492,7 +489,6 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
           reason = "Advanced mouse actions only implemented in rendered browsers",
           issues = {4136})
   @NotYetImplemented(HTMLUNIT)
-  @NoDriverAfterTest
   public void testCanMoveOverAndOutOfAnElement() {
     driver.get(pages.mouseOverPage);
 

@@ -32,9 +32,9 @@ for scheme in INSTALL_SCHEMES.values():
 setup_args = {
     'cmdclass': {'install': install},
     'name': 'selenium',
-    'version': "2.50.0",
+    'version': "2.52.0",
     'description': 'Python bindings for Selenium',
-    'long_description': open(join(abspath(dirname(__file__)), "py", "README")).read(),
+    'long_description': open(join(abspath(dirname(__file__)), "py", "README.rst")).read(),
     'url': 'https://github.com/SeleniumHQ/selenium/',
     'classifiers': ['Development Status :: 5 - Production/Stable',
                    'Intended Audience :: Developers',

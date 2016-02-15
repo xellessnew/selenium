@@ -22,22 +22,23 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
 import static org.openqa.selenium.WaitingConditions.elementLocationToBe;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.FIREFOX;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.PHANTOMJS;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.NoDriverAfterTest;
+import org.openqa.selenium.testing.NeedsFreshDriver;
+import org.openqa.selenium.testing.NoDriverAfterTest;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.testing.SwitchToTopAfterTest;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.testing.Ignore;
@@ -87,7 +88,7 @@ public class DragAndDropTest extends JUnit4TestBase {
   }
 
   @JavascriptEnabled
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   public void testDragAndDropToElementInIframe() {
     driver.get(pages.iframePage);
@@ -102,7 +103,7 @@ public class DragAndDropTest extends JUnit4TestBase {
   }
 
   @JavascriptEnabled
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   public void testDragAndDropElementWithOffsetInIframeAtBottom() {
     driver.get(appServer.whereIs("iframeAtBottom.html"));
@@ -121,6 +122,7 @@ public class DragAndDropTest extends JUnit4TestBase {
   @JavascriptEnabled
   @Ignore(value = {IE}, reason = "IE fails this test if requireWindowFocus=true")
   @Test
+  @NeedsFreshDriver // fails in Sauce if run in a dirty state; to be investigated
   public void testDragAndDropElementWithOffsetInScrolledDiv() {
     driver.get(appServer.whereIs("dragAndDropInsideScrolledDiv.html"));
 

@@ -462,10 +462,16 @@ nsCommandProcessor.prototype.execute = function(jsonCommandString,
     return;
   }
 
-  var contentWindow = sessionWindow.getBrowser().contentWindow;
-  if (!contentWindow) {
-    response.sendError(new WebDriverError(bot.ErrorCode.NO_SUCH_WINDOW,
+  try {
+    var contentWindow = sessionWindow.getBrowser().contentWindow;
+    if (!contentWindow) {
+      response.sendError(new WebDriverError(bot.ErrorCode.NO_SUCH_WINDOW,
         'Window not found. The browser window may have been closed.'));
+      return;
+    }
+  } catch (ff45) {
+    response.sendError(new WebDriverError(bot.ErrorCode.NO_SUCH_WINDOW,
+      'Window not found. The browser window may have been closed.'));
     return;
   }
 
@@ -757,9 +763,14 @@ nsCommandProcessor.prototype.getSessionCapabilities = function(response) {
     try {
       response.value[cap] = prefStore.getBoolPref(pref);
     } catch (e) {
-      // An exception is thrown if the saught preference is not available.
-      // For instance, a Firefox version not supporting HTML5 will not have
-      // a preference for webStorageEnabled.
+      try {
+        response.value[cap] = prefStore.getIntPref(pref);
+      } catch (e) {
+        try {
+          response.value[cap] = prefStore.getCharPref(pref);
+        } catch (e) {
+        }
+      }
     }
   }
 

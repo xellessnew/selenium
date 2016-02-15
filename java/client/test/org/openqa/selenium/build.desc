@@ -20,9 +20,6 @@ java_library(name = "build",
 java_library(name = "base",
   srcs = [
     "Messages.java",
-    "NeedsDriver.java",
-    "NeedsFreshDriver.java",
-    "NoDriverAfterTest.java",
     "Pages.java",
     "ParallelTestRunner.java",
     "StubDriver.java",
@@ -77,7 +74,6 @@ java_library(name = "tests",
     "//third_party/java/commons-io",
     "//third_party/java/junit",
     "//third_party/java/mockito",
-    "//third_party/java/webbit",
   ])
 
 java_test(name = "SmallTests",

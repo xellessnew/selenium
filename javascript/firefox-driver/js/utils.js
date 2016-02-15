@@ -644,6 +644,12 @@ Utils.scrollIntoView = function(element, opt_elementScrollBehavior, opt_coords) 
   if (!Utils.isInView(element, opt_coords)) {
     element.scrollIntoView(opt_elementScrollBehavior);
   }
+  var overflow = bot.dom.getOverflowState(element, opt_coords);
+  if (overflow != bot.dom.OverflowState.NONE) {
+    if (element.scrollIntoView) {
+      element.scrollIntoView(opt_elementScrollBehavior);
+    }
+  }
   return bot.action.scrollIntoView(element, opt_coords);
 };
 
@@ -717,6 +723,18 @@ Utils.getClickablePoint = function(element) {
       }
       parentElemIter = parentElemIter.parentNode;
     }
+
+    // elementFromPoint does not appear to be reliable. This will catch
+    // other cases where the parent element is found instead.
+    // ex.  <button><span/><button>, click on span, but elementFromPoint
+    //      returned the button element.
+    parentElemIter = element.parentNode;
+    while (parentElemIter) {
+      if (parentElemIter == elementAtPoint) {
+        return true;
+      }
+      parentElemIter = parentElemIter.parentNode;
+    }
   };
 
   var rectPointRelativeToView = function(x, y, r) {
@@ -731,9 +749,9 @@ Utils.getClickablePoint = function(element) {
     var offsets = [
       { x: Math.floor(r.width / 2), y: Math.floor(r.height / 2) },
       { x: 0, y: 0 },
-      { x: r.width, y: 0 },
-      { x: 0,  y: r.height },
-      { x: r.width, y: r.height}
+      { x: r.width - 1, y: 0 },
+      { x: 0,  y: r.height - 1 },
+      { x: r.width - 1, y: r.height - 1}
     ]
 
     return goog.array.find(offsets, function(offset){

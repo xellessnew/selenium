@@ -19,7 +19,6 @@ package org.openqa.selenium.logging;
 
 import org.junit.After;
 import org.junit.Test;
-import org.openqa.selenium.NeedsFreshDriver;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.testing.Ignore;
@@ -34,12 +33,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 import static org.openqa.selenium.remote.CapabilityType.ENABLE_PROFILING_CAPABILITY;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.PHANTOMJS;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 
 @Ignore({HTMLUNIT, IE, PHANTOMJS, MARIONETTE})
 public class AvailableLogsTest extends JUnit4TestBase {
@@ -62,7 +60,6 @@ public class AvailableLogsTest extends JUnit4TestBase {
                logTypes.contains(LogType.BROWSER));
   }
 
-  @NeedsFreshDriver
   @Test
   public void clientLogShouldBeEnabledByDefault() {
     assumeFalse(isOldChromedriver(driver));
@@ -83,7 +80,6 @@ public class AvailableLogsTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore({CHROME})  // Remove when chromedriver2 has it
   public void driverLogShouldBeEnabledByDefault() {
     assumeFalse(isOldChromedriver(driver));
     Set<String> logTypes = driver.manage().logs().getAvailableLogTypes();

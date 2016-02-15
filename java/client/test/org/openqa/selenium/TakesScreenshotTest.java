@@ -32,16 +32,18 @@ import static org.openqa.selenium.Platform.LINUX;
 import static org.openqa.selenium.support.ui.ExpectedConditions.frameToBeAvailableAndSwitchToIt;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfAllElementsLocatedBy;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.FIREFOX;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.PHANTOMJS;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.getEffectivePlatform;
 import static org.openqa.selenium.testing.TestUtilities.isChrome;
 
 import com.google.common.collect.Sets;
+
+import org.openqa.selenium.testing.SwitchToTopAfterTest;
 import org.openqa.selenium.testing.drivers.SauceDriver;
 
 import java.awt.image.BufferedImage;
@@ -321,7 +323,7 @@ public class TakesScreenshotTest extends JUnit4TestBase {
     compareColors(expectedColors, actualColors);
   }
 
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   @Ignore(
       value = {IE, MARIONETTE},
@@ -357,7 +359,7 @@ public class TakesScreenshotTest extends JUnit4TestBase {
     compareColors(expectedColors, actualColors);
   }
 
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   @Ignore(
       value = {IE, CHROME, MARIONETTE},

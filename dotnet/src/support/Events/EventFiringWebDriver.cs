@@ -20,7 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using System.Text;
 using OpenQA.Selenium.Internal;
 
 namespace OpenQA.Selenium.Support.Events
@@ -883,6 +882,11 @@ namespace OpenQA.Selenium.Support.Events
             public IWindow Window
             {
                 get { return this.wrappedOptions.Window; }
+            }
+
+            public ILogs Logs
+            {
+                get { return this.wrappedOptions.Logs; }
             }
 
             /// <summary>

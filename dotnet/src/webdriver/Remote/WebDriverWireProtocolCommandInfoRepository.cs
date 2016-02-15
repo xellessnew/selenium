@@ -16,10 +16,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace OpenQA.Selenium.Remote
 {
     /// <summary>
@@ -134,6 +130,9 @@ namespace OpenQA.Selenium.Remote
             this.TryAddCommand(DriverCommand.TouchFlick, new CommandInfo(CommandInfo.PostCommand, "/session/{sessionId}/touch/flick"));
 
             this.TryAddCommand(DriverCommand.UploadFile, new CommandInfo(CommandInfo.PostCommand, "/session/{sessionId}/file"));
+
+            this.TryAddCommand(DriverCommand.GetAvailableLogTypes, new CommandInfo(CommandInfo.GetCommand, "/session/{sessionId}/log/types"));
+            this.TryAddCommand(DriverCommand.GetLog, new CommandInfo(CommandInfo.PostCommand, "/session/{sessionId}/log"));
 
             // HTML5 commands
             this.TryAddCommand(DriverCommand.GetLocation, new CommandInfo(CommandInfo.GetCommand, "/session/{sessionId}/location"));

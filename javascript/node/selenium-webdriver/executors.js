@@ -22,11 +22,10 @@
 
  'use strict';
 
-var HttpClient = require('./http').HttpClient,
+const HttpClient = require('./http').HttpClient,
     HttpExecutor = require('./http').Executor,
-    promise = require('./lib/_base').require('webdriver.promise');
-
-var DeferredExecutor = require('./lib/command').DeferredExecutor;
+    DeferredExecutor = require('./lib/command').DeferredExecutor,
+    promise = require('./lib/promise');
 
 
 // PUBLIC API
@@ -37,9 +36,9 @@ exports.DeferredExecutor = DeferredExecutor;
 
 /**
  * Creates a command executor that uses WebDriver's JSON wire protocol.
- * @param {(string|!webdriver.promise.Promise<string>)} url The server's URL,
+ * @param {(string|!promise.Promise<string>)} url The server's URL,
  *     or a promise that will resolve to that URL.
- * @param {string=} opt_proxy (optional) The URL of the HTTP proxy for the
+ * @param {?string=} opt_proxy (optional) The URL of the HTTP proxy for the
  *     client to use.
  * @returns {!./lib/command.Executor} The new command executor.
  */

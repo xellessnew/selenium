@@ -25,20 +25,21 @@ import static org.openqa.selenium.Platform.ANDROID;
 import static org.openqa.selenium.WaitingConditions.newWindowIsOpened;
 import static org.openqa.selenium.WaitingConditions.pageSourceToContain;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.getEffectivePlatform;
 import static org.openqa.selenium.testing.TestUtilities.isChrome;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.interactions.MoveTargetOutOfBoundsException;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.JavascriptEnabled;
+import org.openqa.selenium.testing.NoDriverAfterTest;
+import org.openqa.selenium.testing.SwitchToTopAfterTest;
 
 import java.util.Set;
 
@@ -49,11 +50,6 @@ public class ClickTest extends JUnit4TestBase {
     driver.get(pages.clicksPage);
   }
 
-  @After
-  public void tearDown() throws Exception {
-    driver.switchTo().defaultContent();
-  }
-
   @Test
   public void testCanClickOnALinkAndFollowIt() {
     driver.findElement(By.id("normal")).click();
@@ -61,7 +57,6 @@ public class ClickTest extends JUnit4TestBase {
     wait.until(titleIs("XHTML Test Page"));
   }
 
-  @Ignore(value = {MARIONETTE}, reason = "Not tested.")
   @Test
   public void testCanClickOnALinkThatOverflowsAndFollowIt() {
     driver.findElement(By.id("overflowLink")).click();
@@ -82,9 +77,9 @@ public class ClickTest extends JUnit4TestBase {
     assertEquals("Latch was reset", Boolean.TRUE, samePage);
   }
 
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
   @Test
   @Ignore(value = {MARIONETTE}, reason = "getPageSource issue")
+  @SwitchToTopAfterTest
   public void testCanClickOnALinkThatUpdatesAnotherFrame() {
     driver.switchTo().frame("source");
 
@@ -95,9 +90,9 @@ public class ClickTest extends JUnit4TestBase {
   }
 
   @JavascriptEnabled
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
   @Test
   @Ignore(value = {MARIONETTE}, reason = "getPageSource issue")
+  @SwitchToTopAfterTest
   public void testElementsFoundByJsCanLoadUpdatesInAnotherFrame() {
     driver.switchTo().frame("source");
 
@@ -113,6 +108,7 @@ public class ClickTest extends JUnit4TestBase {
   @JavascriptEnabled
   @Test
   @Ignore(value = {MARIONETTE})
+  @SwitchToTopAfterTest
   public void testJsLocatedElementsCanUpdateFramesIfFoundSomehowElse() {
     driver.switchTo().frame("source");
 
@@ -131,7 +127,6 @@ public class ClickTest extends JUnit4TestBase {
 
   @JavascriptEnabled
   @Test
-  @Ignore(value = {MARIONETTE}, reason = "sendKeys is not standard compliant yet")
   public void testCanClickOnAnElementWithTopSetToANegativeNumber() {
     String page = appServer.whereIs("styledPage.html");
     driver.get(page);
@@ -151,7 +146,7 @@ public class ClickTest extends JUnit4TestBase {
   }
 
   @JavascriptEnabled
-  @Ignore(value = {CHROME}, reason = "Not implemented")
+  @Ignore(value = {CHROME, MARIONETTE}, reason = "Not implemented")
   @Test
   public void testShouldSetRelatedTargetForMouseOver() {
     driver.get(pages.javascriptPage);
@@ -165,7 +160,7 @@ public class ClickTest extends JUnit4TestBase {
 
   @JavascriptEnabled
   @NoDriverAfterTest
-  @Ignore(value = {SAFARI, MARIONETTE}, reason = "Safari: issue 3693")
+  @Ignore(value = {SAFARI}, reason = "Safari: issue 3693")
   @Test
   public void testShouldOnlyFollowHrefOnce() {
     driver.get(pages.clicksPage);
@@ -287,8 +282,8 @@ public class ClickTest extends JUnit4TestBase {
   }
 
   @Test
-  @Ignore(value = {CHROME, MARIONETTE},
-      reason = "Chrome: failed")
+  @Ignore(value = {CHROME, MARIONETTE}, reason = "Chrome: failed")
+  @SwitchToTopAfterTest
   public void testShouldBeAbleToClickOnAnElementInFrameGreaterThanTwoViewports() {
     String url = appServer.whereIs("click_too_big_in_frame.html");
     driver.get(url);
@@ -362,6 +357,17 @@ public class ClickTest extends JUnit4TestBase {
     driver.get(appServer.whereIs("click_tests/span_that_wraps.html"));
 
     driver.findElement(By.id("span")).click();
+
+    wait.until(titleIs("Submitted Successfully!"));
+  }
+
+  @JavascriptEnabled
+  @Test
+  @Ignore(value = {CHROME, IE, MARIONETTE, SAFARI})
+  public void testShouldBeAbleToClickOnAPartiallyOverlappedLinkThatWrapsToTheNextLine() {
+    driver.get(appServer.whereIs("click_tests/wrapped_overlapping_elements.html"));
+
+    driver.findElement(By.id("link")).click();
 
     wait.until(titleIs("Submitted Successfully!"));
   }

@@ -22,10 +22,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.PHANTOMJS;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 
 import org.junit.After;
 import org.junit.Before;
@@ -139,7 +138,7 @@ public class ImplicitWaitTest extends JUnit4TestBase {
 
   @Test
   @JavascriptEnabled
-  @Ignore({IE, PHANTOMJS, SAFARI, MARIONETTE})
+  @Ignore({IE, PHANTOMJS, SAFARI})
   public void testShouldImplicitlyWaitForAnElementToBeVisibleBeforeInteracting() {
     driver.get(pages.dynamicPage);
 
@@ -161,7 +160,7 @@ public class ImplicitWaitTest extends JUnit4TestBase {
 
   @Test
   @JavascriptEnabled
-  @Ignore({IE, PHANTOMJS, SAFARI, MARIONETTE})
+  @Ignore({IE, PHANTOMJS, SAFARI})
   public void testShouldRetainImplicitlyWaitFromTheReturnedWebDriverOfFrameSwitchTo() {
     driver.manage().timeouts().implicitlyWait(1, SECONDS);
     driver.get(pages.xhtmlTestPage);

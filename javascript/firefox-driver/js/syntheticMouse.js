@@ -83,9 +83,20 @@ SyntheticMouse.prototype.isElementShownAndClickable = function(element) {
     return error;
   }
 
-  var error = this.isElementClickable(element);
-  if (error) {
-    return error;
+  var checkOverlapping = true;
+  try {
+    var prefStore = fxdriver.moz.getService('@mozilla.org/preferences-service;1',
+                                            'nsIPrefBranch');
+    if (prefStore.getBoolPref('webdriver.overlappingCheckDisabled', false)) {
+      checkOverlapping = false;
+    }
+  } catch (ignored) {}
+
+  if (checkOverlapping) {
+    error = this.isElementClickable(element);
+    if (error) {
+      return error;
+    }
   }
 }
 
@@ -168,6 +179,19 @@ SyntheticMouse.prototype.isElementClickable = function(element) {
   var parentElemIter = elementAtPoint.parentNode;
   while (parentElemIter) {
     if (parentElemIter == element) {
+      return;
+    }
+    parentElemIter = parentElemIter.parentNode;
+  }
+
+  // elementFromPoint is not without fault, for example:
+  // <button><span></button> and span.click() results in
+  // elementAtPoint being the button rather than the span.
+  // catch these potential edge cases by checking if the
+  // target element is a direct descendent of the elementAtPoint
+  parentElemIter = element.parentNode;
+  while (parentElemIter) {
+    if (parentElemIter == elementAtPoint) {
       return;
     }
     parentElemIter = parentElemIter.parentNode;
@@ -300,9 +324,12 @@ SyntheticMouse.prototype.click = function(target) {
     bot.action.click(element, this.lastMousePosition, this.getMouse_(), true);
   }
 
-  if (bot.dom.isEditable(element) && element.value !== undefined) {
-    goog.dom.selection.setCursorPosition(
+  try { // https://github.com/SeleniumHQ/selenium/issues/1509
+    if (bot.dom.isEditable(element) && element.value !== undefined) {
+      goog.dom.selection.setCursorPosition(
         element, element.value.length);
+    }
+  } catch (ignored) {
   }
 
   this.lastElement = element;

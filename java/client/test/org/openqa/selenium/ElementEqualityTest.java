@@ -20,9 +20,9 @@ package org.openqa.selenium;
 import org.junit.Test;
 import org.openqa.selenium.internal.WrapsElement;
 import org.openqa.selenium.remote.RemoteWebElement;
-import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.JavascriptEnabled;
+import org.openqa.selenium.testing.SwitchToTopAfterTest;
 
 import java.util.List;
 
@@ -69,7 +69,7 @@ public class ElementEqualityTest extends JUnit4TestBase {
   }
 
   @JavascriptEnabled
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   public void testAnElementFoundInADifferentFrameViaJsShouldHaveSameId() {
     driver.get(pages.missedJsReferencePage);

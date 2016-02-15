@@ -29,10 +29,10 @@ import static org.openqa.selenium.WaitingConditions.newWindowIsOpened;
 import static org.openqa.selenium.WaitingConditions.windowHandleCountToBe;
 import static org.openqa.selenium.WaitingConditions.windowHandleCountToBeGreaterThan;
 import static org.openqa.selenium.support.ui.ExpectedConditions.alertIsPresent;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.REMOTE;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.REMOTE;
 
 import com.google.common.collect.Sets;
 
@@ -41,7 +41,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.JavascriptEnabled;
+import org.openqa.selenium.testing.NoDriverAfterTest;
 import org.openqa.selenium.testing.NotYetImplemented;
+import org.openqa.selenium.testing.SwitchToTopAfterTest;
 import org.openqa.selenium.testing.TestUtilities;
 import org.openqa.selenium.testing.drivers.Browser;
 
@@ -49,7 +51,8 @@ import java.util.Set;
 
 public class WindowSwitchingTest extends JUnit4TestBase {
 
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
+  @NoDriverAfterTest(failedOnly = true)
   @Test
   public void testShouldSwitchFocusToANewWindowWhenItIsOpenedAndNotStopFutureOperations() {
     assumeFalse(Browser.detect() == Browser.opera &&
@@ -93,6 +96,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
     driver.switchTo().window(current);
   }
 
+  @NoDriverAfterTest(failedOnly = true)
   @Ignore({MARIONETTE})
   @Test
   public void testShouldThrowNoSuchWindowExceptionOnAnAttemptToGetItsHandle() {
@@ -117,6 +121,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
     }
   }
 
+  @NoDriverAfterTest(failedOnly = true)
   @Ignore({MARIONETTE})
   @Test
   public void testShouldThrowNoSuchWindowExceptionOnAnyOperationIfAWindowIsClosed() {
@@ -150,6 +155,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
     }
   }
 
+  @NoDriverAfterTest(failedOnly = true)
   @Ignore({MARIONETTE})
   @Test
   public void testShouldThrowNoSuchWindowExceptionOnAnyElementOperationIfAWindowIsClosed() {
@@ -175,7 +181,6 @@ public class WindowSwitchingTest extends JUnit4TestBase {
     }
   }
 
-  @NeedsFreshDriver
   @NoDriverAfterTest
   @Ignore({IE, REMOTE})
   @Test
@@ -310,11 +315,12 @@ public class WindowSwitchingTest extends JUnit4TestBase {
     assertEquals(current, newHandle);
   }
 
-  @NeedsFreshDriver
-  @NoDriverAfterTest
+  @NoDriverAfterTest(failedOnly = true)
   @Test
   public void testCanCloseWindowWhenMultipleWindowsAreOpen() {
     driver.get(pages.xhtmlTestPage);
+    String mainHandle = driver.getWindowHandle();
+
     Set<String> currentWindowHandles = driver.getWindowHandles();
 
     driver.findElement(By.name("windowOne")).click();
@@ -325,19 +331,27 @@ public class WindowSwitchingTest extends JUnit4TestBase {
 
     // There should be two windows. We should also see each of the window titles at least once.
     assertEquals(2, allWindowHandles.size());
-    String handle1 = (String) allWindowHandles.toArray()[1];
-    driver.switchTo().window(handle1);
-    driver.close();
-    allWindowHandles = driver.getWindowHandles();
-    assertEquals(1, allWindowHandles.size());
+
+    for (String handle : allWindowHandles) {
+      if (! handle.equals(mainHandle)) {
+        driver.switchTo().window(handle);
+        driver.close();
+        break;
+      }
+    }
+
+    assertEquals(1, driver.getWindowHandles().size());
+
+    driver.switchTo().window(mainHandle);
   }
 
-  @NeedsFreshDriver
-  @NoDriverAfterTest
+  @NoDriverAfterTest(failedOnly = true)
   @Test
   public void testCanCloseWindowAndSwitchBackToMainWindow() {
     driver.get(pages.xhtmlTestPage);
+
     Set<String> currentWindowHandles = driver.getWindowHandles();
+    String mainHandle = driver.getWindowHandle();
 
     driver.findElement(By.name("windowOne")).click();
 
@@ -347,17 +361,23 @@ public class WindowSwitchingTest extends JUnit4TestBase {
 
     // There should be two windows. We should also see each of the window titles at least once.
     assertEquals(2, allWindowHandles.size());
-    String mainHandle = (String) allWindowHandles.toArray()[0];
-    String handle1 = (String) allWindowHandles.toArray()[1];
-    driver.switchTo().window(handle1);
-    driver.close();
+
+    for (String handle : allWindowHandles) {
+      if (! handle.equals(mainHandle)) {
+        driver.switchTo().window(handle);
+        driver.close();
+        break;
+      }
+    }
+
     driver.switchTo().window(mainHandle);
 
     String newHandle = driver.getWindowHandle();
     assertEquals(mainHandle, newHandle);
+
+    assertEquals(1, driver.getWindowHandles().size());
   }
 
-  @NeedsFreshDriver
   @NoDriverAfterTest
   @Test
   public void testClosingOnlyWindowShouldNotCauseTheBrowserToHang() {
@@ -365,8 +385,7 @@ public class WindowSwitchingTest extends JUnit4TestBase {
     driver.close();
   }
 
-  @NeedsFreshDriver
-  @NoDriverAfterTest
+  @NoDriverAfterTest(failedOnly = true)
   @Test
   @Ignore(MARIONETTE)
   public void testShouldFocusOnTheTopMostFrameAfterSwitchingToAWindow() {

@@ -1,3 +1,32 @@
+v2.52.0
+=======
+ * Updated Firefox driver to include ability to disable overlapping element
+   check. This includes a new constant for the name of the capability.
+ * Provided an implementation of the local-end logging API.
+ * Provided type-safe option to allow disabling of full-page screenshots when
+   using the IE driver.
+ * (on behalf of Glib Briia) Updated support library's SelectElement class to
+   better handle <select multiple='multiple'> elements.
+
+v2.51.0
+=======
+ * Updated Firefox driver which includes fixes for the clicking in overlapped
+   elements. In keeping with project support policy for Firefox, This driver
+   has been tested with Firefox 44 (current release), 43 (immediately prior
+   release), 38 (current ESR release), and 31 (immediately prior ESR release).
+ * Refactoring .NET driver Options classes to descend from common class. This
+   commit introduces a common base class for driver-specific type-safe Options
+   classes (e.g., ChromeOptions, InternetExplorerOptions, etc.). This will
+   help pave the way to eliminate needing to know the name or expected type
+   of arbitrary capabilities in a future release.
+ * Removed the incorrect ChromeOptions method introduced in 2.50.0.
+ * Added ability to add traceCategories to performance logging preferences in
+   ChromeOptions. Fixes issue #1591.
+
+v2.50.1
+=======
+ * Changed ChromeOptions to have correct EnableMobileEmulation API.
+
 v2.50.0
 =======
  * Updated embedded Firefox driver with new click algorithm

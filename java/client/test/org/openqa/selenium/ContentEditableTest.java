@@ -22,11 +22,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeFalse;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.getEffectivePlatform;
 import static org.openqa.selenium.testing.TestUtilities.isFirefox;
 
@@ -127,7 +127,7 @@ public class ContentEditableTest extends JUnit4TestBase {
     assertThat(editable.getText(), equalTo("cheese"));
   }
 
-  @Ignore(value = {IE, SAFARI, HTMLUNIT, MARIONETTE},
+  @Ignore(value = {CHROME, IE, SAFARI, HTMLUNIT, MARIONETTE},
     reason = "Untested browsers;" +
              " Safari: cannot type on contentEditable with synthetic events",
     issues = {3127})

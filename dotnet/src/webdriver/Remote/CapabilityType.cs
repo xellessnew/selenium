@@ -16,10 +16,6 @@
 // limitations under the License.
 // </copyright>
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace OpenQA.Selenium.Remote
 {
     /// <summary>
@@ -91,6 +87,21 @@ namespace OpenQA.Selenium.Remote
         /// Capability name used to indicate the page load strategy for the browser.
         /// </summary>
         public static readonly string PageLoadStrategy = "pageLoadStrategy";
+
+        /// <summary>
+        /// Capability name used to indicate the logging preferences for the session.
+        /// </summary>
+        public static readonly string LoggingPreferences = "loggingPrefs";
+
+        /// <summary>
+        /// Capability name used to disable the check for overlapping elements.
+        /// </summary>
+        public static readonly string DisableOverlappedElementCheck = "overlappingCheckDisabled";
+
+        /// <summary>
+        /// Capability name used to enable the profiling log for the session.
+        /// </summary>
+        public static readonly string EnableProfiling = "webdriver.logging.profiler.enabled";
 
         /// <summary>
         /// Capability name used to indicate whether the driver supports geolocation context.

@@ -39,13 +39,13 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.not;
 import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.FIREFOX;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.PHANTOMJS;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.getEffectivePlatform;
 import static org.openqa.selenium.testing.TestUtilities.isChrome;
 import static org.openqa.selenium.testing.TestUtilities.isLocal;
@@ -58,8 +58,11 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.JavascriptEnabled;
+import org.openqa.selenium.testing.NeedsFreshDriver;
 import org.openqa.selenium.testing.NeedsLocalEnvironment;
+import org.openqa.selenium.testing.NoDriverAfterTest;
 import org.openqa.selenium.testing.NotYetImplemented;
+import org.openqa.selenium.testing.SwitchToTopAfterTest;
 import org.openqa.selenium.testing.drivers.SauceDriver;
 import org.openqa.selenium.testing.drivers.WebDriverBuilder;
 
@@ -224,7 +227,7 @@ public class PageLoadingTest extends JUnit4TestBase {
     driver.get("www.test.com");
   }
 
-  @Ignore(value = {IE, SAFARI, PHANTOMJS})
+  @Ignore(value = {IE, SAFARI, PHANTOMJS, MARIONETTE})
   @Test(expected = WebDriverException.class)
   @NeedsFreshDriver
   public void testShouldThrowIfUrlIsMalformedInPortPart() {
@@ -249,7 +252,7 @@ public class PageLoadingTest extends JUnit4TestBase {
   }
 
   @Ignore({MARIONETTE})
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   public void testShouldBeAbleToLoadAPageWithFramesetsAndWaitUntilAllFramesAreLoaded() {
     driver.get(pages.framesetPage);
@@ -497,7 +500,7 @@ public class PageLoadingTest extends JUnit4TestBase {
     wait.until(titleIs("XHTML Test Page"));
   }
 
-  @Ignore(value = {CHROME, SAFARI},
+  @Ignore(value = {CHROME, SAFARI, MARIONETTE},
           reason = "Not implemented; Safari: see issue 687, comment 41",
           issues = {687})
   @NotYetImplemented(HTMLUNIT)

@@ -70,13 +70,6 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -84,6 +77,7 @@
     <Compile Include="Chrome\ChromeMobileEmulationDeviceSettings.cs" />
     <Compile Include="Chrome\ChromePerformanceLoggingPreferences.cs" />
     <Compile Include="DefaultFileDetector.cs" />
+    <Compile Include="DriverOptions.cs" />
     <Compile Include="Edge\EdgeDriver.cs" />
     <Compile Include="Edge\EdgeDriverService.cs" />
     <Compile Include="Edge\EdgeOptions.cs" />
@@ -104,6 +98,10 @@
     <Compile Include="IE\InternetExplorerDriverEngine.cs" />
     <Compile Include="IFileDetector.cs" />
     <Compile Include="Html5\IHasLocationContext.cs" />
+    <Compile Include="ILogs.cs" />
+    <Compile Include="LogEntry.cs" />
+    <Compile Include="LogLevel.cs" />
+    <Compile Include="LogType.cs" />
     <Compile Include="Remote\IHasSessionId.cs" />
     <Compile Include="IHasTouchScreen.cs" />
     <Compile Include="Interactions\ScreenMoveAction.cs" />
@@ -130,6 +128,7 @@
     <Compile Include="PhantomJS\PhantomJSDriverService.cs" />
     <Compile Include="PhantomJS\PhantomJSOptions.cs" />
     <Compile Include="PhantomJS\PhantomJSWebElement.cs" />
+    <Compile Include="Remote\RemoteLogs.cs" />
     <Compile Include="Remote\W3CWireProtocolCommandInfoRepository.cs" />
     <Compile Include="Remote\WebDriverError.cs" />
     <Compile Include="Remote\WebDriverWireProtocolCommandInfoRepository.cs" />

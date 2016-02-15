@@ -21,8 +21,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
-using System.Text;
-using Newtonsoft.Json;
 using OpenQA.Selenium.Remote;
 
 namespace OpenQA.Selenium.Chrome
@@ -52,7 +50,7 @@ namespace OpenQA.Selenium.Chrome
     /// RemoteWebDriver driver = new RemoteWebDriver(new Uri("http://localhost:4444/wd/hub"), options.ToCapabilities());
     /// </code>
     /// </example>
-    public class ChromeOptions
+    public class ChromeOptions : DriverOptions
     {
         /// <summary>
         /// Gets the name of the capability used to store Chrome options in
@@ -412,7 +410,7 @@ namespace OpenQA.Selenium.Chrome
         /// <remarks>Specifying an invalid device name will not throw an exeption, but
         /// will generate an error in Chrome when the driver starts. To unset mobile
         /// emulation, call this method with <see langword="null"/> as the argument.</remarks>
-        public void EnableMobileDeviceEmulation(ChromeMobileEmulationDeviceSettings deviceSettings)
+        public void EnableMobileEmulation(ChromeMobileEmulationDeviceSettings deviceSettings)
         {
             this.mobileEmulationDeviceName = null;
             if (deviceSettings != null && string.IsNullOrEmpty(deviceSettings.UserAgent))
@@ -480,7 +478,7 @@ namespace OpenQA.Selenium.Chrome
         /// existing value with the new value in <paramref name="capabilityValue"/>.
         /// Also, by default, calling this method adds capabilities to the options object passed to
         /// chromedriver.exe.</remarks>
-        public void AddAdditionalCapability(string capabilityName, object capabilityValue)
+        public override void AddAdditionalCapability(string capabilityName, object capabilityValue)
         {
             // Add the capability to the chromeOptions object by default. This is to handle
             // the 80% case where the chromedriver team adds a new option in chromedriver.exe
@@ -507,6 +505,7 @@ namespace OpenQA.Selenium.Chrome
         {
             if (capabilityName == ChromeOptions.Capability ||
                 capabilityName == CapabilityType.Proxy ||
+                capabilityName == CapabilityType.LoggingPreferences ||
                 capabilityName == ChromeOptions.ArgumentsChromeOption ||
                 capabilityName == ChromeOptions.BinaryChromeOption ||
                 capabilityName == ChromeOptions.ExtensionsChromeOption ||
@@ -546,7 +545,7 @@ namespace OpenQA.Selenium.Chrome
         /// reflected in the returned capabilities.
         /// </summary>
         /// <returns>The DesiredCapabilities for Chrome with these options.</returns>
-        public ICapabilities ToCapabilities()
+        public override ICapabilities ToCapabilities()
         {
             Dictionary<string, object> chromeOptions = this.BuildChromeOptionsDictionary();
 
@@ -556,6 +555,12 @@ namespace OpenQA.Selenium.Chrome
             if (this.proxy != null)
             {
                 capabilities.SetCapability(CapabilityType.Proxy, this.proxy);
+            }
+
+            Dictionary<string, object> loggingPreferences = this.GenerateLoggingPreferencesDictionary();
+            if (loggingPreferences != null)
+            {
+                capabilities.SetCapability(CapabilityType.LoggingPreferences, loggingPreferences);
             }
 
             foreach (KeyValuePair<string, object> pair in this.additionalCapabilities)
@@ -648,7 +653,13 @@ namespace OpenQA.Selenium.Chrome
             string tracingCategories = this.perfLoggingPreferences.TracingCategories;
             if (!string.IsNullOrEmpty(tracingCategories))
             {
+                // Adding both 'tracingCategories' and 'traceCategories' to the dictionary.
+                // The ChromeDriver documentation indicates one of these is correct; user
+                // reports indicate the other is correct. Until the proper preference name
+                // is validated by the Chromium development team, we'll send both, as the
+                // extraneous one should be ignored by the driver.
                 perfLoggingPrefsDictionary["tracingCategories"] = tracingCategories;
+                perfLoggingPrefsDictionary["traceCategories"] = tracingCategories;
             }
 
             perfLoggingPrefsDictionary["bufferUsageReportingInterval"] = Convert.ToInt64(this.perfLoggingPreferences.BufferUsageReportingInterval.TotalMilliseconds);

@@ -26,36 +26,34 @@ import static org.junit.Assume.assumeFalse;
 import static org.openqa.selenium.support.ui.ExpectedConditions.alertIsPresent;
 import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
-import static org.openqa.selenium.testing.Ignore.Driver.CHROME;
-import static org.openqa.selenium.testing.Ignore.Driver.FIREFOX;
-import static org.openqa.selenium.testing.Ignore.Driver.HTMLUNIT;
-import static org.openqa.selenium.testing.Ignore.Driver.IE;
-import static org.openqa.selenium.testing.Ignore.Driver.MARIONETTE;
-import static org.openqa.selenium.testing.Ignore.Driver.PHANTOMJS;
-import static org.openqa.selenium.testing.Ignore.Driver.SAFARI;
+import static org.openqa.selenium.testing.Driver.CHROME;
+import static org.openqa.selenium.testing.Driver.FIREFOX;
+import static org.openqa.selenium.testing.Driver.HTMLUNIT;
+import static org.openqa.selenium.testing.Driver.IE;
+import static org.openqa.selenium.testing.Driver.MARIONETTE;
+import static org.openqa.selenium.testing.Driver.PHANTOMJS;
+import static org.openqa.selenium.testing.Driver.SAFARI;
 import static org.openqa.selenium.testing.TestUtilities.getFirefoxVersion;
 import static org.openqa.selenium.testing.TestUtilities.isFirefox;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.JavascriptEnabled;
 import org.openqa.selenium.testing.NeedsLocalEnvironment;
+import org.openqa.selenium.testing.NoDriverAfterTest;
 import org.openqa.selenium.testing.NotYetImplemented;
+import org.openqa.selenium.testing.SwitchToTopAfterTest;
 
 import java.util.Set;
 
 @Ignore({PHANTOMJS, SAFARI})
 public class AlertsTest extends JUnit4TestBase {
 
-  private WebDriverWait wait;
-
   @Before
   public void setUp() throws Exception {
-    wait = new WebDriverWait(driver, 5);
     driver.get(pages.alertsPage);
   }
 
@@ -167,7 +165,7 @@ public class AlertsTest extends JUnit4TestBase {
     wait.until(textInElementLocated(By.id("text"), "cheese"));
   }
 
-  @Ignore(value = {CHROME, MARIONETTE},
+  @Ignore(value = {CHROME},
     reason = "Marionette: https://github.com/jgraham/wires/issues/17")
   @JavascriptEnabled
   @Test
@@ -225,9 +223,8 @@ public class AlertsTest extends JUnit4TestBase {
     fail("Expected NoAlertPresentException");
   }
 
-  @Ignore(MARIONETTE)
   @JavascriptEnabled
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   public void testShouldAllowUsersToAcceptAnAlertInAFrame() {
     driver.switchTo().frame("iframeWithAlert");
@@ -241,9 +238,8 @@ public class AlertsTest extends JUnit4TestBase {
     assertEquals("Testing Alerts", driver.getTitle());
   }
 
-  @Ignore(MARIONETTE)
   @JavascriptEnabled
-  @NoDriverAfterTest // So that next test never starts with "inside a frame" base state.
+  @SwitchToTopAfterTest
   @Test
   public void testShouldAllowUsersToAcceptAnAlertInANestedFrame() {
     driver.switchTo().frame("iframeWithIframe").switchTo().frame("iframeWithAlert");
