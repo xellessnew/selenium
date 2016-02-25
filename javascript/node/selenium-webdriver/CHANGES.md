@@ -1,3 +1,31 @@
+## v2.53.0-dev
+
+### Change Summary
+
+* Added preliminary support for Marionette, Mozilla's WebDriver implementation
+   for Firefox. Marionette may be enabled via the API,
+   `firefox.Options#useMarionette`, or by setting the `SELENIUM_MARIONETTE`
+   environment variable.
+* Moved all logic for parsing and interpreting responses from the remote end
+   into the individual `command.Executor` implementations.
+* For consistency with the other Selenium language bindings,
+   `WebDriver#isElementPresent()` and `WebElement#isElementPresent()` have
+   been deprecated. These methods will be removed in v3.0. Use the findElements
+   command to test for the presence of an element:
+
+      driver.findElements(By.css('.foo')).then(found => !!found.length);
+* Added support for W3C-spec compliant servers.
+* For consistent naming, deprecating `error.InvalidSessionIdError` in favor of
+    `error.NoSuchSessionError`.
+
+### Changes for W3C WebDriver Spec Compliance
+
+* Changed `element.sendKeys(...)` to send the key sequence as an array where
+   each element defines a single key. The legacy wire protocol permits arrays
+   where each element is a string of arbitrary length. This change is solely
+   at the protocol level and should have no user-visible effect.
+
+
 ## v2.52.0
 
 ### Notice

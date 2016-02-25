@@ -1,16 +1,3 @@
-java_library(name = "tests",
-  srcs = [
-    "HtmlUnitCapabilitiesTest.java",
-    "HtmlUnitSpecificTests.java",
-    "InputKeysContainerTest.java",
-    "ToStringTest.java",
-    "HtmlUnitProxyTest.java",
-  ],
-  deps = [
-    "//java/client/src/org/openqa/selenium/htmlunit",
-    "//java/client/test/org/openqa/selenium:tests"
-  ])
-
 java_test(name = "test_basic",
   srcs = [
     "HtmlUnitDriverTests.java",
@@ -19,7 +6,7 @@ java_test(name = "test_basic",
     { "selenium.browser" : "htmlunit" },
   ],
   deps = [
-    ":tests",
+       "//java/client/test/org/openqa/selenium:tests"
   ])
 
 java_test(name = "test_js",
@@ -30,5 +17,5 @@ java_test(name = "test_js",
     { "selenium.browser" : "htmlunit_js" },
   ],
   deps = [
-    ":tests",
+       "//java/client/test/org/openqa/selenium:tests"
   ])

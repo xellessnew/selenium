@@ -46,7 +46,7 @@ describe('error', function() {
     test('invalid element coordinates', error.InvalidElementCoordinatesError);
     test('invalid element state', error.InvalidElementStateError);
     test('invalid selector', error.InvalidSelectorError);
-    test('invalid session id', error.InvalidSessionIdError);
+    test('invalid session id', error.NoSuchSessionError);
     test('javascript error', error.JavascriptError);
     test('move target out of bounds', error.MoveTargetOutOfBoundsError);
     test('no such alert', error.NoSuchAlertError);
@@ -71,6 +71,79 @@ describe('error', function() {
             (e) => {
               assert.equal(expectedType, e.constructor);
               assert.equal(e.message, 'oops');
+              return true;
+            });
+      });
+    }
+  });
+
+  describe('throwDecodedError', function() {
+    it('defaults to WebDriverError if type is unrecognized', function() {
+      assert.throws(
+          () => error.throwDecodedError({error: 'foo', message: 'hi there'}),
+          (e) => {
+            assert.equal(e.constructor, error.WebDriverError);
+            assert.equal(e.code, error.ErrorCode.UNKNOWN_ERROR);
+            return true;
+          });
+    });
+
+    it('throws generic error if encoded data is not valid', function() {
+      assert.throws(
+          () => error.throwDecodedError({error: 123, message: 'abc123'}),
+          (e) => {
+            assert.strictEqual(e.constructor, error.WebDriverError);
+            return true;
+          });
+
+      assert.throws(
+          () => error.throwDecodedError('null'),
+          (e) => {
+            assert.strictEqual(e.constructor, error.WebDriverError);
+            return true;
+          });
+
+      assert.throws(
+          () => error.throwDecodedError(''),
+          (e) => {
+            assert.strictEqual(e.constructor, error.WebDriverError);
+            return true;
+          });
+    });
+
+    test('unknown error', error.WebDriverError);
+    test('element not selectable', error.ElementNotSelectableError);
+    test('element not visible', error.ElementNotVisibleError);
+    test('invalid argument', error.InvalidArgumentError);
+    test('invalid cookie domain', error.InvalidCookieDomainError);
+    test('invalid element coordinates', error.InvalidElementCoordinatesError);
+    test('invalid element state', error.InvalidElementStateError);
+    test('invalid selector', error.InvalidSelectorError);
+    test('invalid session id', error.NoSuchSessionError);
+    test('javascript error', error.JavascriptError);
+    test('move target out of bounds', error.MoveTargetOutOfBoundsError);
+    test('no such alert', error.NoSuchAlertError);
+    test('no such element', error.NoSuchElementError);
+    test('no such frame', error.NoSuchFrameError);
+    test('no such window', error.NoSuchWindowError);
+    test('script timeout', error.ScriptTimeoutError);
+    test('session not created', error.SessionNotCreatedError);
+    test('stale element reference', error.StaleElementReferenceError);
+    test('timeout', error.TimeoutError);
+    test('unable to set cookie', error.UnableToSetCookieError);
+    test('unable to capture screen', error.UnableToCaptureScreenError);
+    test('unexpected alert open', error.UnexpectedAlertOpenError);
+    test('unknown command', error.UnknownCommandError);
+    test('unknown method', error.UnknownMethodError);
+    test('unsupported operation', error.UnsupportedOperationError);
+
+    function test(status, expectedType) {
+      it(`"${status}" => ${expectedType.name}`, function() {
+        assert.throws(
+            () => error.throwDecodedError({error: status, message: 'oops'}),
+            (e) => {
+              assert.strictEqual(e.constructor, expectedType);
+              assert.strictEqual(e.message, 'oops');
               return true;
             });
       });
@@ -109,6 +182,43 @@ describe('error', function() {
     test('INVALID_XPATH_SELECTOR_RETURN_TYPE', error.InvalidSelectorError);
     test('METHOD_NOT_ALLOWED', error.UnsupportedOperationError);
 
+    describe('UnexpectedAlertOpenError', function() {
+      it('includes alert text from the response object', function() {
+        let response = {
+          status: error.ErrorCode.UNEXPECTED_ALERT_OPEN,
+          value: {
+            message: 'hi',
+            alert: {text: 'alert text here'}
+          }
+        };
+        assert.throws(
+            () => error.checkLegacyResponse(response),
+            (e) => {
+              assert.equal(error.UnexpectedAlertOpenError, e.constructor);
+              assert.equal(e.message, 'hi');
+              assert.equal(e.getAlertText(), 'alert text here');
+              return true;
+            });
+      });
+
+      it('uses an empty string if alert text omitted', function() {
+        let response = {
+          status: error.ErrorCode.UNEXPECTED_ALERT_OPEN,
+          value: {
+            message: 'hi'
+          }
+        };
+        assert.throws(
+            () => error.checkLegacyResponse(response),
+            (e) => {
+              assert.equal(error.UnexpectedAlertOpenError, e.constructor);
+              assert.equal(e.message, 'hi');
+              assert.equal(e.getAlertText(), '');
+              return true;
+            });
+      });
+    });
+
     function test(codeKey, expectedType) {
       it(`${codeKey} => ${expectedType.name}`, function() {
         let code = error.ErrorCode[codeKey];
@@ -133,7 +243,7 @@ describe('error', function() {
     check(error.InvalidElementCoordinatesError, 'INVALID_ELEMENT_COORDINATES');
     check(error.InvalidElementStateError, 'INVALID_ELEMENT_STATE');
     check(error.InvalidSelectorError, 'INVALID_SELECTOR_ERROR');
-    check(error.InvalidSessionIdError, 'UNKNOWN_ERROR');
+    check(error.NoSuchSessionError, 'UNKNOWN_ERROR');
     check(error.JavascriptError, 'JAVASCRIPT_ERROR');
     check(error.MoveTargetOutOfBoundsError, 'MOVE_TARGET_OUT_OF_BOUNDS');
     check(error.NoSuchAlertError, 'NO_SUCH_ALERT');

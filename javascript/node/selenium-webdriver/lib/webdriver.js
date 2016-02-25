@@ -60,10 +60,7 @@ const until = require('./until');
 function acquireSession(executor, command, description, opt_flow) {
   let flow = opt_flow || promise.controlFlow();
   let session = flow.execute(function() {
-    return executeCommand(executor, command).then(function(response) {
-      error.checkLegacyResponse(response);
-      return new Session(response['sessionId'], response['value']);
-    });
+    return executeCommand(executor, command);
   }, description);
   return new WebDriver(session, executor, flow);
 }
@@ -354,28 +351,12 @@ class WebDriver {
       return prepCommand.then(function(parameters) {
         command.setParameters(parameters);
         return executor.execute(command);
-      });
-    }, description).then(function(response) {
-      try {
-        error.checkLegacyResponse(response);
-      } catch (ex) {
-        if (ex instanceof error.UnexpectedAlertOpenError) {
-          let text = '';
-          if (response['value']
-              && response['value']['alert']
-              && typeof response['value']['alert']['text'] === 'string') {
-            text = response['value']['alert']['text'];
-          }
-          throw new error.UnexpectedAlertOpenError(ex.message, text);
-        }
-        throw ex;
-      }
-      return fromWireValue(self, response['value']);
-    });
+      }).then(value => fromWireValue(self, value));
+    }, description);
 
     function checkHasNotQuit() {
       if (!self.session_) {
-        throw new error.UnsupportedOperationError(
+        throw new error.NoSuchSessionError(
           'This driver instance does not have a valid session ID ' +
           '(did you call WebDriver.quit()?) and may no longer be ' +
           'used.');
@@ -872,6 +853,11 @@ class WebDriver {
    * @param {!(by.By|Function)} locator The locator to use.
    * @return {!promise.Promise<boolean>} A promise that will resolve
    *     with whether the element is present on the page.
+   * @deprecated This method will be removed in Selenium 3.0 for consistency
+   *     with the other Selenium language bindings. This method is equivalent
+   *     to
+   *
+   *      driver.findElements(locator).then(e => !!e.length);
    */
   isElementPresent(locator) {
     return this.findElements.apply(this, arguments).then(function(result) {
@@ -1769,6 +1755,11 @@ class WebElement {
    *     searching for the element.
    * @return {!promise.Promise<boolean>} A promise that will be
    *     resolved with whether an element could be located on the page.
+   * @deprecated This method will be removed in Selenium 3.0 for consistency
+   *     with the other Selenium language bindings. This method is equivalent
+   *     to
+   *
+   *      element.findElements(locator).then(e => !!e.length);
    */
   isElementPresent(locator) {
     return this.findElements(locator).then(function(result) {
@@ -1870,7 +1861,19 @@ class WebElement {
     // ignore the jsdoc and give us a number (which ends up causing problems on
     // the server, which requires strings).
     let keys = promise.all(Array.prototype.slice.call(arguments, 0)).
-        then(keys => keys.map(String));
+        then(keys => {
+          let ret = [];
+          keys.forEach(key => {
+            if (typeof key !== 'string') {
+              key = String(key);
+            }
+
+            // The W3C protocol requires keys to be specified as an array where
+            // each element is a single key.
+            ret.push.apply(ret, key.split(''));
+          });
+          return ret;
+        });
     if (!this.driver_.fileDetector_) {
       return this.schedule_(
           new command.Command(command.Name.SEND_KEYS_TO_ELEMENT).

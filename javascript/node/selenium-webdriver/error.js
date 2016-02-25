@@ -160,10 +160,20 @@ class InvalidSelectorError extends WebDriverError {
 
 
 /**
- * Occurs if the given session id is not in the list of active sessions, meaning
- * the session either does not exist or that it’s not active.
+ * Occurs when a command is directed to a session that does not exist.
  */
-class InvalidSessionIdError extends WebDriverError {
+class NoSuchSessionError extends WebDriverError {
+  /** @param {string=} opt_error the error message, if any. */
+  constructor(opt_error) {
+    super(opt_error);
+  }
+}
+
+
+/**
+ * @deprecated Use {@link NoSuchSessionError} instead.
+ */
+class InvalidSessionIdError extends NoSuchSessionError {
   /** @param {string=} opt_error the error message, if any. */
   constructor(opt_error) {
     super(opt_error);
@@ -521,7 +531,7 @@ const ERROR_CODE_TO_TYPE = new Map([
     ['invalid element coordinates', InvalidElementCoordinatesError],
     ['invalid element state', InvalidElementStateError],
     ['invalid selector', InvalidSelectorError],
-    ['invalid session id', InvalidSessionIdError],
+    ['invalid session id', NoSuchSessionError],
     ['javascript error', JavascriptError],
     ['move target out of bounds', MoveTargetOutOfBoundsError],
     ['no such alert', NoSuchAlertError],
@@ -546,6 +556,7 @@ const ERROR_CODE_TO_TYPE = new Map([
  * @param {*} data The response data to check.
  * @return {*} The response data if it was not an encoded error.
  * @throws {WebDriverError} the decoded error, if present in the data object.
+ * @deprecated Use {@link #throwDecodedError(data)} instead.
  * @see https://w3c.github.io/webdriver/webdriver-spec.html#protocol
  */
 function checkResponse(data) {
@@ -554,6 +565,23 @@ function checkResponse(data) {
     throw new ctor(data.message);
   }
   return data;
+}
+
+
+/**
+ * Throws an error coded from the W3C protocol. A generic error will be thrown
+ * if the privded `data` is not a valid encoded error.
+ *
+ * @param {{error: string, message: string}} data The error data to decode.
+ * @throws {WebDriverError} the decoded error.
+ * @see https://w3c.github.io/webdriver/webdriver-spec.html#protocol
+ */
+function throwDecodedError(data) {
+  if (data && typeof data === 'object' && typeof data.error === 'string') {
+    let ctor = ERROR_CODE_TO_TYPE.get(data.error) || WebDriverError;
+    throw new ctor(data.message);
+  }
+  throw new WebDriverError('Unknown error: ' + JSON.stringify(data));
 }
 
 
@@ -577,7 +605,16 @@ function checkLegacyResponse(responseObj) {
     if (!value || typeof value !== 'object') {
       throw new ctor(value + '');
     } else {
-      throw new ctor(value['message'] + '');
+      let message = value['message'] + '';
+      if (ctor !== UnexpectedAlertOpenError) {
+        throw new ctor(message);
+      }
+
+      let text = '';
+      if (value['alert'] && typeof value['alert']['text'] === 'string') {
+        text = value['alert']['text'];
+      }
+      throw new UnexpectedAlertOpenError(message, text);
     }
   }
   return responseObj;
@@ -603,6 +640,7 @@ exports.MoveTargetOutOfBoundsError = MoveTargetOutOfBoundsError;
 exports.NoSuchAlertError = NoSuchAlertError;
 exports.NoSuchElementError = NoSuchElementError;
 exports.NoSuchFrameError = NoSuchFrameError;
+exports.NoSuchSessionError = NoSuchSessionError;
 exports.NoSuchWindowError = NoSuchWindowError;
 exports.ScriptTimeoutError = ScriptTimeoutError;
 exports.SessionNotCreatedError = SessionNotCreatedError;
@@ -617,3 +655,4 @@ exports.UnsupportedOperationError = UnsupportedOperationError;
 
 exports.checkResponse = checkResponse;
 exports.checkLegacyResponse = checkLegacyResponse;
+exports.throwDecodedError = throwDecodedError;
