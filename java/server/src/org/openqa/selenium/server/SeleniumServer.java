@@ -411,8 +411,8 @@ public class SeleniumServer implements SslCertificateGenerator, GridNodeServer {
     } else {
       browserTimeout /= 1000;
     }
-    webdriverContext.setInitParameter("webdriver.server.session.timeout", String.valueOf(sessionTimeout));
-    webdriverContext.setInitParameter("webdriver.server.browser.timeout", String.valueOf(browserTimeout));
+    webdriverContext.setInitParameter(DriverServlet.SESSION_TIMEOUT_PARAMETER, String.valueOf(sessionTimeout));
+    webdriverContext.setInitParameter(DriverServlet.BROWSER_TIMEOUT_PARAMETER, String.valueOf(browserTimeout));
     webdriverContext.setAttribute(DriverServlet.SESSIONS_KEY, webDriverSessions);
     webdriverContext.setContextPath("/wd");
     ServletHandler handler = new ServletHandler();
@@ -586,6 +586,14 @@ public class SeleniumServer implements SslCertificateGenerator, GridNodeServer {
 
   public int getPort() {
     return configuration.getPort();
+  }
+
+  public int getRealPort() {
+    if (server.isStarted()) {
+      SocketListener socket = (SocketListener) server.getListeners()[0];
+      return socket.getPort();
+    }
+    return getPort();
   }
 
   /**
@@ -868,15 +876,7 @@ public class SeleniumServer implements SslCertificateGenerator, GridNodeServer {
     }
     String INDENT = "  ";
     String INDENT2X = INDENT + INDENT;
-    printWrappedLine("", "Usage: java -jar selenium-server.jar [-interactive] [options]\n");
-    printWrappedLine(INDENT,
-                     "-port <nnnn>: the port number the selenium server should use (default 4444)");
-    printWrappedLine(INDENT,
-                     "-timeout <nnnn>: an integer number of seconds we should allow a client to be idle");
-    printWrappedLine(INDENT,
-                     "-browserTimeout <nnnn>: an integer number of seconds a browser is allowed to hang");
-    printWrappedLine(INDENT,
-                     "-interactive: puts you into interactive mode.  See the tutorial for more details");
+    printWrappedLine("", "Usage: java -jar selenium-server.jar [options]\n");
     printWrappedLine(
       INDENT,
       "-singleWindow: puts you into a mode where the test web site executes in a frame. This mode should only be selected if the application under test does not use frames.");

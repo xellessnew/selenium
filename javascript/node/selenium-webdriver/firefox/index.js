@@ -374,10 +374,11 @@ class Driver extends webdriver.WebDriver {
           });
 
       onQuit = function() {
-        return command.then(command => {
+        let finishCommand = command.then(command => {
           command.kill();
           return command.result();
-        }).thenFinally(() => preparedProfile.then(io.rmDir));
+        });
+        return finishCommand.finally(() => preparedProfile.then(io.rmDir));
       };
     }
 

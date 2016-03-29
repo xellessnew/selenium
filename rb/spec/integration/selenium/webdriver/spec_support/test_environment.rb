@@ -91,12 +91,20 @@ module Selenium
           )
         end
 
+        def reset_remote_server
+          if defined?(@remote_server)
+            @remote_server.stop
+          end
+          @remote_server = nil
+          remote_server
+        end
+
         def remote_server?
           !@remote_server.nil?
         end
 
         def remote_server_jar
-          @remote_server_jar ||= root.join("build/java/server/test/org/openqa/selenium/server-with-tests-standalone.jar").to_s
+          @remote_server_jar ||= root.join("build/java/server/src/org/openqa/grid/selenium/selenium-standalone.jar").to_s
         end
 
         def quit
@@ -200,17 +208,16 @@ module Selenium
         end
 
         def create_firefox_driver
-          if native_events?
-            profile = WebDriver::Firefox::Profile.new
-            profile.native_events = true
+          binary = ENV['FIREFOX_BINARY']
+          WebDriver::Firefox.path = binary if binary
 
-            WebDriver::Driver.for :firefox, :profile => profile
-          else
-            WebDriver::Driver.for :firefox
-          end
+          WebDriver::Driver.for :firefox
         end
 
         def create_marionette_driver
+          binary = ENV['FIREFOX_BINARY']
+          WebDriver::Firefox.path = binary if binary
+
           WebDriver.for :firefox, :marionette => true
         end
 
@@ -220,12 +227,12 @@ module Selenium
         end
 
         def create_chrome_driver
-          binary = ENV['chrome_binary']
+          binary = ENV['CHROME_BINARY']
           if binary
             WebDriver::Chrome.path = binary
           end
 
-          server = ENV['chromedriver'] || ENV['chrome_server']
+          server = ENV['CHROMEDRIVER'] || ENV['chrome_server']
           if server
             WebDriver::Chrome.driver_path = server
           end
@@ -239,7 +246,7 @@ module Selenium
         end
 
         def create_phantomjs_driver
-          binary = ENV['phantomjs_binary']
+          binary = ENV['PHANTOMJS_BINARY']
           if binary
             WebDriver::PhantomJS.path = binary
           end

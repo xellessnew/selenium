@@ -44,6 +44,7 @@ java_library(name = "webdriver-api",
     "NoAlertPresentException.java",
     "NoSuchElementException.java",
     "NoSuchFrameException.java",
+    "NoSuchSessionException.java",
     "NoSuchWindowException.java",
     "NotFoundException.java",
     "OutputType.java",
@@ -106,7 +107,8 @@ java_library(name = "client-combined-v3",
     "//java/client/src/org/openqa/selenium/safari",
     "//java/client/src/org/openqa/selenium/support",
     "//java/client/src/org/openqa/selenium/remote:augmenter",
-    "//third_party/java/phantomjs-driver"
+    "//third_party/java/phantomjs-driver",
+    "//third_party/java/htmlunit"
   ])
 
 java_library(name = "codecs",

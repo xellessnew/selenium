@@ -44,7 +44,7 @@ module Selenium
         end
 
         def send(command)
-          json = WebDriver.json_dump(command)
+          json = JSON.generate(command)
           puts ">>> #{json}" if $DEBUG
 
           frame = WebSocket::Frame::Outgoing::Server.new(:version => @version, :data => json, :type => :text)
@@ -76,7 +76,7 @@ module Selenium
 
           puts "<<< #{msg}" if $DEBUG
 
-          WebDriver.json_load msg.to_s
+          JSON.parse msg.to_s
         end
 
         def ws_uri
@@ -101,7 +101,9 @@ Server: safaridriver-ruby
 
         HEADERS.gsub!("\n", "\r\n")
 
-        HTML = "<!DOCTYPE html><script>#{Safari.resource_path.join('client.js').read}</script>"
+        def html
+          "<!DOCTYPE html><script>#{Safari.resource_path.join('client.js').read}</script>"
+        end
 
         def process_initial_http_request
           http = @server.accept
@@ -121,14 +123,14 @@ Server: safaridriver-ruby
           else
             http << HEADERS % [200, 'OK']
             http << "\r\n\r\n"
-            http << HTML
+            http << html
             http.close
           end
         end
 
         def process_handshake
           @ws = @server.accept
-          hs  = WebSocket::Handshake::Server.new
+          hs = WebSocket::Handshake::Server.new
 
           req = ''
           until hs.finished?
@@ -157,12 +159,7 @@ Server: safaridriver-ruby
         end
 
         def encode_form_component(str)
-          if URI.respond_to?(:encode_www_form_component) # >= 1.9
-            URI.encode_www_form_component(str)
-          else
-            # best effort for 1.8
-            str.gsub(":", '%3A').gsub('/', '%2F')
-          end
+          URI.encode_www_form_component(str)
         end
 
         private

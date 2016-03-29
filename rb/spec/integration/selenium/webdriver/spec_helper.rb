@@ -36,13 +36,8 @@ end
 RSpec.configure do |c|
   c.include(WebDriver::SpecSupport::Helpers)
   c.before(:suite) do
-    Selenium::WebDriver::Firefox::Binary.path = ENV['MARIONETTE_PATH'] if GlobalTestEnv.browser == :marionette && ENV['MARIONETTE_PATH']
     if GlobalTestEnv.driver == :remote
-      server = GlobalTestEnv.remote_server
-      if GlobalTestEnv.browser == :marionette
-        server << "-Dwebdriver.firefox.bin=#{ENV['MARIONETTE_PATH']}"
-      end
-      server.start
+      GlobalTestEnv.remote_server.start
     end
   end
 

@@ -159,6 +159,7 @@ const Name = {
   DISMISS_ALERT: 'dismissAlert',
   GET_ALERT_TEXT: 'getAlertText',
   SET_ALERT_TEXT: 'setAlertValue',
+  SET_ALERT_CREDENTIALS: 'setAlertCredentials',
 
   EXECUTE_SQL: 'executeSQL',
   GET_LOCATION: 'getLocation',
@@ -257,7 +258,9 @@ class DeferredExecutor {
 // PUBLIC API
 
 
-exports.Command = Command;
-exports.Name = Name;
-exports.Executor = Executor;
-exports.DeferredExecutor = DeferredExecutor;
+module.exports = {
+  Command: Command,
+  Name: Name,
+  Executor: Executor,
+  DeferredExecutor: DeferredExecutor
+};

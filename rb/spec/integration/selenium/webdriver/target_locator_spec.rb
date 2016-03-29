@@ -21,23 +21,19 @@ require_relative 'spec_helper'
 
 describe "Selenium::WebDriver::TargetLocator" do
   after do
-    compliant_on :browser => :edge do #https://connect.microsoft.com/IE/Feedback/Details/1853708
-      driver.switch_to.default_content
-    end
-    not_compliant_on :browser => :edge do #https://connect.microsoft.com/IE/Feedback/Details/1850028
-      ensure_single_window
-    end
+    ensure_single_window
   end
 
   let(:new_window) { driver.window_handles.find { |handle| handle != driver.window_handle } }
 
-  # Marionette Bug -
-  # POST /session/f7082a32-e685-2843-ad2c-5bb6f376dac5/element/active
-  # did not match a known command
+  # https://github.com/jgraham/wires/issues/52
   not_compliant_on :browser => :marionette do
-    it "should find the active element" do
-      driver.navigate.to url_for("xhtmlTest.html")
-      expect(driver.switch_to.active_element).to be_an_instance_of(WebDriver::Element)
+    # https://github.com/SeleniumHQ/selenium/issues/1795
+    not_compliant_on :driver => :remote, :browser => [:edge, :marionette] do
+      it "should find the active element" do
+        driver.navigate.to url_for("xhtmlTest.html")
+        expect(driver.switch_to.active_element).to be_an_instance_of(WebDriver::Element)
+      end
     end
   end
 
@@ -117,33 +113,25 @@ describe "Selenium::WebDriver::TargetLocator" do
       expect(driver.title).to eq("We Arrive Here")
     end
 
-    # Edge BUG - https://connect.microsoft.com/IE/feedback/details/1850028
-    not_compliant_on :browser => :edge do
-      it "should use the original window if the block closes the popup" do
-        driver.navigate.to url_for("xhtmlTest.html")
+    it "should use the original window if the block closes the popup" do
+      driver.navigate.to url_for("xhtmlTest.html")
 
-        driver.find_element(:link, "Open new window").click
-        wait.until { driver.window_handles.size == 2 }
-        expect(driver.title).to eq("XHTML Test Page")
+      driver.find_element(:link, "Open new window").click
+      wait.until { driver.window_handles.size == 2 }
+      expect(driver.title).to eq("XHTML Test Page")
 
-        driver.switch_to.window(new_window) do
-          wait.until { driver.title == "We Arrive Here" }
-          driver.close
-        end
-
-        expect(driver.current_url).to include("xhtmlTest.html")
-        expect(driver.title).to eq("XHTML Test Page")
+      driver.switch_to.window(new_window) do
+        wait.until { driver.title == "We Arrive Here" }
+        driver.close
       end
+
+      expect(driver.current_url).to include("xhtmlTest.html")
+      expect(driver.title).to eq("XHTML Test Page")
     end
 
     # Marionette BUG: Automatically switches browsing context to new window when it opens.
     not_compliant_on :browser => [:marionette, :ie] do
       context "with more than two windows" do
-        before do
-          compliant_on :browser => [:chrome, :edge] do
-            reset_driver!(1)
-          end
-        end
 
         it "should close current window when more than two windows exist" do
           driver.navigate.to url_for("xhtmlTest.html")
@@ -207,24 +195,21 @@ describe "Selenium::WebDriver::TargetLocator" do
       end
     end
 
-    # Edge BUG - https://connect.microsoft.com/IE/feedback/details/1850028
-    not_compliant_on :browser => :edge do
-      it "should switch to a window and execute a block when current window is closed" do
-        driver.navigate.to url_for("xhtmlTest.html")
-        driver.find_element(:link, "Open new window").click
-        wait.until { driver.window_handles.size == 2 }
+    it "should switch to a window and execute a block when current window is closed" do
+      driver.navigate.to url_for("xhtmlTest.html")
+      driver.find_element(:link, "Open new window").click
+      wait.until { driver.window_handles.size == 2 }
 
-        driver.switch_to.window(new_window)
-        wait.until { driver.title == "We Arrive Here" }
+      driver.switch_to.window(new_window)
+      wait.until { driver.title == "We Arrive Here" }
 
-        driver.close
+      driver.close
 
-        driver.switch_to.window(driver.window_handles.first) do
-          wait.until { driver.title == "XHTML Test Page" }
-        end
-
-        expect(driver.title).to eq("XHTML Test Page")
+      driver.switch_to.window(driver.window_handles.first) do
+        wait.until { driver.title == "XHTML Test Page" }
       end
+
+      expect(driver.title).to eq("XHTML Test Page")
     end
   end
 
@@ -240,7 +225,7 @@ describe "Selenium::WebDriver::TargetLocator" do
   end
 
   # Edge BUG - https://connect.microsoft.com/IE/feedback/details/1850030
-  not_compliant_on :browser => [:iphone, :safari, :phantomjs, :edge] do
+  not_compliant_on :browser => [:iphone, :safari, :phantomjs] do
     describe "alerts" do
 
       it "allows the user to accept an alert" do
@@ -249,6 +234,7 @@ describe "Selenium::WebDriver::TargetLocator" do
 
         alert = wait_for_alert
         alert.accept
+        wait_for_no_alert
 
         expect(driver.title).to eq("Testing Alerts")
       end
@@ -260,7 +246,6 @@ describe "Selenium::WebDriver::TargetLocator" do
 
           alert = wait_for_alert
           alert.dismiss
-
           wait_for_no_alert
 
           expect(driver.title).to eq("Testing Alerts")
@@ -271,7 +256,8 @@ describe "Selenium::WebDriver::TargetLocator" do
       # Says message should be an array (I think), but we're getting
       # InvalidArgumentError: 'message' not a string
       # When trying a string, error: keysToSend.join is not a function
-      not_compliant_on :browser => :marionette do
+      # Edge Under Consideration - https://dev.windows.com/en-us/microsoft-edge/platform/status/webdriver/details/
+      not_compliant_on :browser => [:marionette, :edge] do
         it "allows the user to set the value of a prompt" do
           driver.navigate.to url_for("alerts.html")
           driver.find_element(:id => "prompt").click
@@ -298,11 +284,14 @@ describe "Selenium::WebDriver::TargetLocator" do
 
       it "raises when calling #text on a closed alert" do
         driver.navigate.to url_for("alerts.html")
+        wait_for_element(:id => "alert")
+
         driver.find_element(:id => "alert").click
 
         alert = wait_for_alert
         alert.accept
 
+        wait_for_no_alert
         expect { alert.text }.to raise_error(Selenium::WebDriver::Error::NoSuchAlertError)
       end
 
@@ -329,6 +318,31 @@ describe "Selenium::WebDriver::TargetLocator" do
           end
         end
       end
+    end
+  end
+
+  compliant_on :browser => :ie do
+    describe "basic auth alerts" do
+
+      after { reset_driver! }
+
+      it "allows the user to send valid credentials to an alert" do
+        driver.navigate.to url_for("basicAuth")
+        driver.switch_to.alert.authenticate("test", "test")
+
+        expect(driver.find_element(tag_name: "h1").text).to eq("authorized")
+      end
+
+      it "does not raise an error when invalid credentials are used" do
+        driver.navigate.to url_for("basicAuth")
+        driver.switch_to.alert.authenticate("invalid", "invalid")
+
+        wait = Selenium::WebDriver::Wait.new(:timeout => 5, :ignore => Selenium::WebDriver::Error::NoSuchAlertError)
+        wait.until { driver.switch_to.alert }
+
+        expect { driver.switch_to.alert.dismiss }.to_not raise_error
+      end
+
     end
   end
 end

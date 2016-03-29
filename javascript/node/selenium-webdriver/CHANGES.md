@@ -1,4 +1,17 @@
-## v2.53.0-dev
+## v2.53.2
+
+* Changed `io.exists()` to return a rejected promise if the input path is not
+   a string
+* Deprecated `Promise#thenFinally()` - use `Promise#finally()`. The thenFinally
+   shim added to the promise module in v2.53.0 will be removed in v3.0
+   Sorry for the churn!
+
+## v2.53.1
+
+* FIXED: for consistency with the other language bindings, `remote.FileDetector`
+    will ignore paths that refer to a directory.
+
+## v2.53.0
 
 ### Change Summary
 
@@ -17,6 +30,20 @@
 * Added support for W3C-spec compliant servers.
 * For consistent naming, deprecating `error.InvalidSessionIdError` in favor of
     `error.NoSuchSessionError`.
+* Moved the `error` module to `lib/error` so all core modules are co-located.
+   The top-level `error` module will be removed in v3.0.
+* Moved `until.Condition` and `until.WebElementCondition` to the webdriver
+   module to break a circular dependency.
+* Added support for setting the username and password in basic auth pop-up
+   dialogs (currently IE only).
+* Deprecated `WebElement#getInnerHtml()` and `WebEleemnt#getOuterHtml()`
+* Deprecated `Promise#thenCatch()` - use `Promise#catch()` instead
+* Deprecated `Promise#thenFinally()` - use `promise.thenFinally()` instead
+* FIXED: `io.findInPath()` will no longer match against directories that have
+   the same basename as the target file.
+* FIXED: `phantomjs.Driver` now takes a third argument that defines the path to
+   a log file to use for the phantomjs executable's output. This may be quickly
+   set at runtime with the `SELENIUM_PHANTOMJS_LOG` environment variable.
 
 ### Changes for W3C WebDriver Spec Compliance
 

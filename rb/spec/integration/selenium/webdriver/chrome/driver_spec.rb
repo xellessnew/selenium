@@ -25,6 +25,7 @@ module Selenium
 
       compliant_on :browser => :chrome do
         describe Driver do
+
           it "should accept an array of custom command line arguments" do
             begin
               driver = Selenium::WebDriver.for :chrome, :args => ["--user-agent=foo;bar"]
